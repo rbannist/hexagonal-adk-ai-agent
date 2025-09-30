@@ -108,7 +108,7 @@ You can also build and run the application using Docker.
 docker run --rm -p 8080:8080 \
   -v "$HOME/.config/gcloud/application_default_credentials.json:/app/gcp-credentials.json:ro" \
   --env GOOGLE_APPLICATION_CREDENTIALS="/app/gcp-credentials.json" \
-  --env-file marketing_image_agent/.env \
+  --env-file .env \
   marketing-creative-agent
 ```
 

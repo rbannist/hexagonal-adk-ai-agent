@@ -7,7 +7,7 @@ from a2a.types import (
     TextPart,
 )
 from a2a.utils import new_agent_text_message, new_task
-from google.adk.artifacts import InMemoryArtifactService
+from google.adk.artifacts import InMemoryArtifactService, GcsArtifactService
 from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
@@ -20,6 +20,7 @@ class ADKAgentExecutor(AgentExecutor):
     def __init__(
         self,
         agent,
+        artifact_storage_bucket_name: str = None,
         status_message="Processing request...",
         artifact_name="response",
     ):
@@ -30,13 +31,21 @@ class ADKAgentExecutor(AgentExecutor):
             status_message: Message to display while processing
             artifact_name: Name for the response artifact
         """
+        if artifact_storage_bucket_name is None:
+            self.adk_artifact_storage = InMemoryArtifactService()
+        else:
+            try:
+                self.adk_artifact_storage = GcsArtifactService(bucket_name=artifact_storage_bucket_name)
+                print(f"Python ADK GcsArtifactService initialised for bucket: {artifact_storage_bucket_name}")
+            except Exception as e:
+                print(f"Error initialising Python ADK GcsArtifactService: {e}")
         self.agent = agent
         self.status_message = status_message
         self.artifact_name = artifact_name
         self.runner = Runner(
             app_name=agent.name,
             agent=agent,
-            artifact_service=InMemoryArtifactService(),
+            artifact_service=self.adk_artifact_storage,
             session_service=InMemorySessionService(),
             memory_service=InMemoryMemoryService(),
         )

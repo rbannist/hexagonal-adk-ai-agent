@@ -1,8 +1,6 @@
-import os
 import io
 import uuid
 import logging
-from dotenv import load_dotenv
 from PIL import Image as PILImage
 from google.adk.agents import Agent
 from google import genai
@@ -10,57 +8,10 @@ from google.genai import types
 from typing import Tuple, Optional
 from google.cloud import storage
 
-
-class EnvironmentConfiguration:
-    def __init__(
-        self,
-        google_cloud_project=None,
-        ai_adk_model_1_name=None,
-        ai_adk_agent_1_name=None,
-        ai_adk_agent_1_description=None,
-        ai_adk_agent_1_instruction=None,
-        ai_image_model_1_name=None,
-        ai_image_model_1_location=None,
-        storage_bucket_name=None,
-    ):
-        load_dotenv()
-
-        def _get_config(arg_val, env_var, default):
-            return arg_val if arg_val is not None else os.getenv(env_var, default)
-
-        self.google_cloud_project = _get_config(
-            google_cloud_project, "GOOGLE_CLOUD_PROJECT", "rbal-assisted-prj1"
-        )
-        self.ai_adk_model_1_name = _get_config(
-            ai_adk_model_1_name, "ADK_MODEL_1_NAME", "gemini-1.5-flash"
-        )
-        self.ai_adk_agent_1_name = _get_config(
-            ai_adk_agent_1_name, "ADK_AGENT_1_NAME", "marketing_image_generating_agent"
-        )
-        self.ai_adk_agent_1_description = _get_config(
-            ai_adk_agent_1_description,
-            "ADK_AGENT_1_DESCRIPTION",
-            "Agent to generate images for the marketing department within a supermarket retailer.",
-        )
-        self.ai_adk_agent_1_instruction = _get_config(
-            ai_adk_agent_1_instruction,
-            "ADK_AGENT_1_INSTRUCTION",
-            "Create a prompt based on what the user asks for and then pass the prompt to the generate_image tool.  Pass the response from the tool back to the user to conclude each interaction.",
-        )
-        self.ai_image_model_1_location = _get_config(
-            ai_image_model_1_location, "GOOGLE_CLOUD_LOCATION", "europe-west4"
-        )
-        self.ai_image_model_1_name = _get_config(
-            ai_image_model_1_name,
-            "GOOGLE_CLOUD_GENAI_IMAGE_MODEL_1_NAME",
-            "imagen-3.0-generate-fast-001",
-        )
-        self.storage_bucket_name = _get_config(
-            storage_bucket_name, "GOOGLE_CLOUD_STORAGE_BUCKET", "rbal-assisted-csew4sb2"
-        )
+from config import Config
 
 
-config = EnvironmentConfiguration()
+config = Config()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -178,7 +129,7 @@ def generate_image_tool(prompt: str) -> dict:
     return {"image_storage_url": image_storage_url}
 
 
-def create_agent(config: EnvironmentConfiguration) -> Agent:
+def create_agent(config: Config) -> Agent:
     agent = Agent(
         name=config.ai_adk_agent_1_name,
         model=config.ai_adk_model_1_name,

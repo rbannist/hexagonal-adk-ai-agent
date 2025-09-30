@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 
 import uvicorn
 
@@ -13,27 +12,30 @@ from a2a.types import (
     AgentSkill,
 )
 
-from dotenv import load_dotenv
 from starlette.applications import Starlette
 
+from config import Config
 from agent_executor import ADKAgentExecutor
 from marketing_image_agent.agent import agent as marketing_image_agent
 
-load_dotenv()
+config=Config()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+if config.ai_adk_agent_1_artifact_storage_bucket_name is not None:
+    print(f"Initialising ADK Agent with Artifact Storage Bucket: {config.ai_adk_agent_1_artifact_storage_bucket_name}")
+
 
 async def main():
-    host = "0.0.0.0"
-    port = int(os.environ.get("PORT", 8080))
+    host = config.host
+    port = int(config.port)
 
     agent_card = AgentCard(
         name=marketing_image_agent.name,
         description=marketing_image_agent.description,
         version="1.0.0",
-        url=os.environ.get("APP_URL", f"http://{host}:{port}"),
+        url=config.app_url,
         default_input_modes=["text", "text/plain"],
         default_output_modes=["text", "text/plain"],
         capabilities=AgentCapabilities(streaming=True),
@@ -56,6 +58,7 @@ async def main():
     request_handler = DefaultRequestHandler(
         agent_executor=ADKAgentExecutor(
             agent=marketing_image_agent,
+            artifact_storage_bucket_name=config.ai_adk_agent_1_artifact_storage_bucket_name,
         ),
         task_store=task_store,
     )
@@ -69,8 +72,8 @@ async def main():
         middleware=[],
     )
 
-    config = uvicorn.Config(app, host=host, port=port, log_level="info")
-    server = uvicorn.Server(config)
+    server_config = uvicorn.Config(app, host=host, port=port, log_level="info")
+    server = uvicorn.Server(server_config)
     await server.serve()
 
 
