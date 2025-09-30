@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.12-slim
 WORKDIR /app
 
 COPY requirements.txt .
@@ -13,4 +13,4 @@ USER myuser
 
 ENV PATH="/home/myuser/.local/bin:$PATH"
 
-CMD ["sh", "-c", "python __main__.py"]
+CMD ["sh", "-c", "uv run python __main__.py"]

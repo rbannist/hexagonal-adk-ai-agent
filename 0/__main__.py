@@ -26,26 +26,26 @@ logger = logging.getLogger(__name__)
 
 
 async def main():
-    host = '0.0.0.0'
+    host = "0.0.0.0"
     port = int(os.environ.get("PORT", 8080))
-    
+
     agent_card = AgentCard(
         name=marketing_image_agent.name,
         description=marketing_image_agent.description,
-        version='1.0.0',
-        url=os.environ.get('APP_URL', f'http://{host}:{port}'),
-        default_input_modes=['text', 'text/plain'],
-        default_output_modes=['text', 'text/plain'],
+        version="1.0.0",
+        url=os.environ.get("APP_URL", f"http://{host}:{port}"),
+        default_input_modes=["text", "text/plain"],
+        default_output_modes=["text", "text/plain"],
         capabilities=AgentCapabilities(streaming=True),
         skills=[
             AgentSkill(
-                id='generate_marketing_image',
-                name='Generate Marketing Image',
-                description='Generates a marketing image based on a text prompt.',
-                tags=['image', 'generate', 'marketing'],
+                id="generate_marketing_image",
+                name="Generate Marketing Image",
+                description="Generates a marketing image based on a text prompt.",
+                tags=["image", "generate", "marketing"],
                 examples=[
-                    'A shopping cart full of fresh vegetables.',
-                    'Two pineapples in a supermarket frozen aisle.',
+                    "A shopping cart full of fresh vegetables.",
+                    "Two pineapples in a supermarket frozen aisle.",
                 ],
             )
         ],
@@ -69,10 +69,10 @@ async def main():
         middleware=[],
     )
 
-    config = uvicorn.Config(app, host=host, port=port, log_level='info')
+    config = uvicorn.Config(app, host=host, port=port, log_level="info")
     server = uvicorn.Server(config)
     await server.serve()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())

@@ -20,8 +20,8 @@ class ADKAgentExecutor(AgentExecutor):
     def __init__(
         self,
         agent,
-        status_message='Processing request...',
-        artifact_name='response',
+        status_message="Processing request...",
+        artifact_name="response",
     ):
         """Initialise a generic ADK agent executor.
 
@@ -48,7 +48,7 @@ class ADKAgentExecutor(AgentExecutor):
     ) -> None:
         """Cancel the execution of a specific task."""
         raise NotImplementedError(
-            'Cancellation is not implemented for ADKAgentExecutor.'
+            "Cancellation is not implemented for ADKAgentExecutor."
         )
 
     async def execute(
@@ -57,7 +57,7 @@ class ADKAgentExecutor(AgentExecutor):
         event_queue: EventQueue,
     ) -> None:
         if not context.message:
-            raise ValueError('Message should be present in request context')
+            raise ValueError("Message should be present in request context")
 
         query = context.get_user_input()
         task = context.current_task or new_task(context.message)
@@ -67,15 +67,13 @@ class ADKAgentExecutor(AgentExecutor):
         if context.call_context:
             user_id = context.call_context.user.user_name
         else:
-            user_id = 'a2a_user'
+            user_id = "a2a_user"
 
         try:
             # Update status with custom message
             await updater.update_status(
                 TaskState.working,
-                new_agent_text_message(
-                    self.status_message, task.context_id, task.id
-                ),
+                new_agent_text_message(self.status_message, task.context_id, task.id),
             )
 
             # Process with ADK agent
@@ -87,7 +85,7 @@ class ADKAgentExecutor(AgentExecutor):
             )
 
             content = types.Content(
-                role='user', parts=[types.Part.from_text(text=query)]
+                role="user", parts=[types.Part.from_text(text=query)]
             )
 
             response_parts = []
@@ -96,10 +94,10 @@ class ADKAgentExecutor(AgentExecutor):
             ):
                 if event.is_final_response() and event.content:
                     for part in event.content.parts:
-                        if hasattr(part, 'text') and part.text:
+                        if hasattr(part, "text") and part.text:
                             response_parts.append(part.text)
 
-            response_text = '\n'.join(response_parts)
+            response_text = "\n".join(response_parts)
 
             # Add response as artifact with custom name
             await updater.add_artifact(
@@ -112,10 +110,9 @@ class ADKAgentExecutor(AgentExecutor):
         except Exception as e:
             await updater.update_status(
                 TaskState.failed,
-                new_agent_text_message(
-                    f'Error: {e!s}', task.context_id, task.id
-                ),
+                new_agent_text_message(f"Error: {e!s}", task.context_id, task.id),
                 final=True,
             )
+
 
 agent_executor = ADKAgentExecutor(agent=agent)
