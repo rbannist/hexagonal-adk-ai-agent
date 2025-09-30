@@ -1,0 +1,16 @@
+uv
+a2a-sdk>=0.3.7
+asyncio>=3.4.3
+dependency-injector>=4.48.1
+google-adk>=1.7.0
+google-cloud-storage>=2.19.0
+google-cloud-firestore>=2.21.0
+google-genai>=1.26.0
+pillow>=11.3.0
+pydantic>=2.11.7
+python-a2a>=0.5.9
+python-dotenv>=1.1.1
+sse-starlette>=2.4.1
+starlette>=0.47.1
+typing-extensions>=4.14.1
+uvicorn>=0.35.0
