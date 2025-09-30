@@ -42,7 +42,7 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 
 ### Configuration
 
-The application is configured using environment variables.  Create a `.env` file (see `.env.example`) in the `marketing_image_agent` directory and populate it with the following (as a minimum):
+The application is configured using environment variables.  Create a `.env` file (see `.env.example`) and populate it with the following (as a minimum):
 
 ```env
 # GCP Configuration
