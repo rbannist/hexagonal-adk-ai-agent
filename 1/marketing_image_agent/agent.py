@@ -218,6 +218,9 @@ def generate_image_tool(prompt: str) -> dict:
     saves the aggregate state to Firestore, 
     and then gives the object's URL to the user.
 
+    Args:
+        prompt (str): The prompt for the image generation.
+
     Returns:
         A dictionary containing the result of the image generation process.
     """
@@ -283,7 +286,7 @@ def generate_image_tool(prompt: str) -> dict:
         "size": int(len(generated_image_bytes)),
         "mime_type": generated_image_mime_type,
         "checksum": checksum,
-        "created_by": str(uuid.uuid4()), # This could be passed in from the agent context
+        "created_by": str(uuid.uuid4()), # This could be passed in from the agent context in the future
         "status": "GENERATED",
     }
 

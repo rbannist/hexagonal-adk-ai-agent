@@ -1,3 +1,4 @@
+import uuid
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
@@ -73,10 +74,24 @@ class ADKAgentExecutor(AgentExecutor):
         await event_queue.enqueue_event(task)
 
         updater = TaskUpdater(event_queue, task.id, task.context_id)
-        if context.call_context:
-            user_id = context.call_context.user.user_name
+        
+        # Prioritise the structured call_context, then fall back to custom metadata
+        user_id_from_context = getattr(context.call_context, 'user.user_name', None)
+        if not user_id_from_context and context.message and context.message.metadata:
+            user_id_from_context = context.message.metadata.get('user_id')
+
+        if user_id_from_context:
+            try:
+                uuid.UUID(user_id_from_context)
+                user_id = user_id_from_context
+                # print(f"Using valid UUID user ID from context: {user_id}")
+            except ValueError:
+                # print(f"ID from context '{user_id_from_context}' is not a valid UUID and our user_id value object is a UUID.  Generating new user ID.")
+                user_id = str(uuid.uuid4())
         else:
-            user_id = "a2a_user"
+            print("No user ID found in context. Generating new user ID.")
+            user_id = str(uuid.uuid4())
+        print(f"User ID for this session: {user_id}")
 
         try:
             # Update status with custom message
