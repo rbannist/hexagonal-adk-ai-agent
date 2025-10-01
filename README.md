@@ -51,3 +51,17 @@ This repository is structured to guide you through the process of building a sop
 ### Running the Agent
 
 To run the agent, simply execute `uv run python __main__.py`.
+
+
+## Agent Development and Maturity Roadmap
+
+| Step | What's Being Introduced | Why It's Valuable |
+| :--- | :--- | :--- |
+| **4** | **Foundational Infrastructure & Governance** | This step prepares the agent for scalable, repeatable deployments and formalises our architectural principles. |
+| | <ul> <li>Terraform Google Cloud resource deployment.</li> <li>Documented Quality Attributes & ADRs fed into code and deployment concerns.</li> </ul> | <ul> <li>**Terraform IaC** allows us to automatically and reliably deploy the cloud infrastructure - e.g. storage for images, container runtime, etc. -  needed to run our agent. </li> <li>**ADRs** and defined **Quality Attributes** - e.g. performance, security, reliability, observability, etc. - force us to make conscious decisions, ensuring the architecture can handle what's required of it.</li> </ul> |
+| **5** | **Production-Grade Observability** | We can't fix or improve what we can't see.  This step gives us deep insight into how image generation requests are performing. |
+| | <ul> <li>Structured Logging.</li> <li>End-to-End Tracing (ADK + Traditional).</li> </ul> | <ul> <li>**Tracing** lets us follow a single request from the initial prompt to the final output, pinpointing bottlenecks or errors in the process. </li> <li>**Structured Logs** provide the rich, machine-readable details at each step of the trace, answering *why* a problem occurred.</li> </ul> |
+| **6** | **Core Agent Performance & Statefulness** | This focuses on making the single agent faster, smarter, and more capable of handling complex, long-running tasks. |
+| | <ul> <li>Async end-to-end processing.</li> <li>Vertex AI Agent Engine (Memory & Sessions).</li> <li>ADK Artifact Storage advancements.</li> </ul> | <ul> <li>**Async processing** makes the whole agent service non-blocking, so it can start generating a complex image while remaining responsive to other users.</li> <li>**Memory & Sessions** allow the agent to remember context from a user's previous requests - e.g. "Use the same colour palette as last time", leading to more coherent and useful images. </li> <li>Advanced **Artifact Storage** improves how we manage the terabytes of generated images, drafts, and assets.</li> </ul> |
+| **7** | **Advanced Multi-Agent System Architecture** | This evolves our single agent into a sophisticated system of collaborating specialist agents, enabling complex, automated marketing workflows. |
+| | <ul> <li>An **Agent / A2A Registry**.</li> <li>Multi-agent patterns - i.e. CQRS, Sagas, Event Sourcing, Claim-Check, etc. </li> </ul> | <ul> <li>We can now have specialised agents. The **Registry** allows them to discover and talk to each other.</li> <li>Patterns like **Choreography Sagas** and **Event Sourcing** enable reliable, multi-step workflows - e.g. draft image -> get legal approval -> publish to social media - without a central point of failure. The **Claim-Check** pattern is used to pass large data, like high-resolution images, between them efficiently.</li> </ul> |
