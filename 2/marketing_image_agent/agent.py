@@ -1,3 +1,4 @@
+import os
 from google.adk.agents import Agent
 
 from config import Container
@@ -41,3 +42,16 @@ def create_agent(container: Container) -> Agent:
     marketing_image_generator_tool = MarketingImageGeneratorTool(container)
 
     return agent
+
+# The following is added to support the `adk web` command.
+# It instantiates the container and creates the agent, assigning it to `root_agent`.
+container = Container()
+
+# Construct the absolute path to the config.yaml file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(current_dir, '..', 'config.yaml') # Go up one level to the project root
+
+# Load configuration
+container.config.from_yaml(config_path, required=True)
+
+root_agent = create_agent(container)
