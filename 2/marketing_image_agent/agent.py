@@ -74,24 +74,7 @@ class GoogleCloudStorage:
         except Exception as e:
             logger.error(f"Error uploading image to GCS: {e}")
             return public_url, checksum
-    
-    def remove_marketing_image_object(self, file_name: str) -> str:
-        """
-        Removes an image from Google Cloud Storage.
 
-        Args:
-            file_name: The name of the file to remove.
-
-        Returns:
-            A string indicating the result of the operation.
-        """
-        blob = self.storage_bucket.blob(file_name)
-        try:
-            blob.delete()
-            return f"File {file_name} removed successfully."
-        except Exception as e:
-            logger.error(f"Error removing image from GCS: {e}")
-            return f"Error removing file {file_name}: {e}"
 
 storage_client = GoogleCloudStorage(
     config.google_cloud_project, config.storage_bucket_name
@@ -215,20 +198,13 @@ class GoogleCloudFirestoreRepository:
             marketing_images.append(self.aggregate_factory.from_dict(data))
         return marketing_images
 
-    def remove_marketing_image(self, id: uuid.UUID) -> None:
+    def remove(self, id: uuid.UUID) -> None:
         """
         Performs a hard delete of a marketing image aggregate from Firestore.
         """
-        try:
-            doc_ref = self.repository_db.collection(self.repository_aggregate_collection_name).document(str(id))
-            doc_ref.delete()
-            message = f"Deleted marketing image with ID {id}"
-            logger.info(message)
-            return {"message": message}
-        except Exception as e:
-            message = f"Error deleting marketing image with ID {id}: {e}"
-            logger.error(message)
-            return {"message": message}
+        doc_ref = self.repository_db.collection(self.repository_aggregate_collection_name).document(str(id))
+        doc_ref.delete()
+
 
 repository = GoogleCloudFirestoreRepository(
     config.google_cloud_project, config.repository_db_location, config.repository_db_name, config.repository_aggregate_collection_name, config.repository_domain_event_collection_name 
@@ -249,8 +225,7 @@ def generate_image_tool(prompt: str) -> dict:
         A dictionary containing the result of the image generation process.
     """
 
-    image_id = uuid.uuid4()
-    file_name = f"marketing-{image_id}.png"
+    file_name = f"marketing-{uuid.uuid4()}.png"
     mime_type = "image/png"
     img_width, img_height = 0, 0
 
@@ -301,7 +276,7 @@ def generate_image_tool(prompt: str) -> dict:
         logger.error(f"Failed to upload file {file_name} to cloud storage.")
     
     image_data = {
-        "id": str(image_id),
+        "id": str(uuid.uuid4()),
         "url": image_storage_url,
         "description": prompt,
         "keywords": ["retail"],
@@ -324,57 +299,13 @@ def generate_image_tool(prompt: str) -> dict:
     return {"image_storage_url": image_storage_url}
 
 
-def accept_image_tool(image_id: str) -> dict:
-    # Here we will load the aggregate from the repository, 
-    # change the status value to 'accepted', 
-    # create an associated 'accepted' domain event, 
-    # save the aggregate and new domain event to the repository,
-    # and then return a suitable message
-    return {"feature":"to_be_implemented", "image_id": image_id}
-
-def reject_image_tool(image_id: str) -> dict:
-    # Here we will load the aggregate from the repository, 
-    # change the status value to 'rejected', 
-    # create an associated 'rejected' domain event, 
-    # save the aggregate and new domain event to the repository,
-    # and then return a suitable message
-    return {"feature":"to_be_implemented", "image_id": image_id}
-
-def remove_image_tool(image_id: str) -> dict:
-    try:
-        image_uuid = uuid.UUID(image_id)
-    except ValueError:
-        return {"error": f"Invalid image_id format: {image_id}. It must be a valid UUID."}
-
-    # The file name format will need to be more robust as not all images are .png
-    # The image will need locating via a call to the Firestore Repository DB first
-    # For now, we'll assume this convention is correct.
-    file_name = f"marketing-{image_id}.png"
-
-    # We will also need an Domain Event implementation in this function - i.e. create and store a 'removed' Domain Event.
-
-    storage_removal_result = storage_client.remove_marketing_image_object(file_name)
-    repository_removal_result = repository.remove_marketing_image(image_uuid)
-
-    return {"storage_removal_result": storage_removal_result, "repository_removal_result": repository_removal_result["message"]}
-
-
-def change_image_metadata_tool(image_id: str, new_description: str, new_keywords: list[str]) -> dict:
-    # Here we will load the aggregate from the repository, 
-    # change the description, dimensions, keywords, size, and/or url value(s), 
-    # create an associated 'metadata_changed' domain event, 
-    # save the aggregate and new domain event to the repository,
-    # and then return a suitable message
-    return {"feature":"to_be_implemented", "image_id": image_id}
-
-
 def create_agent(config: Config) -> Agent:
     agent = Agent(
         name=config.ai_adk_agent_1_name,
         model=config.ai_adk_model_1_name,
         description=config.ai_adk_agent_1_description,
         instruction=config.ai_adk_agent_1_instruction,
-        tools=[generate_image_tool, accept_image_tool, reject_image_tool, remove_image_tool, change_image_metadata_tool],
+        tools=[generate_image_tool],
     )
     return agent
 

@@ -22,7 +22,7 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 - **A2A Compliant**: Implements the A2A (Agent-to-Agent) protocol for standardised agent communication.
 - **Tool-Using Agent**: Utilises the Google ADK to create an agent that uses a custom tool for image generation.
 - **Cloud Integrated**: Stores generated images in a Google Cloud Storage bucket.
-- **Containerized**: Includes a `Dockerfile` for easy deployment and scaling.
+- **Containerised**: Includes a `Dockerfile` for easy deployment and scaling.
 
 ## Architecture
 

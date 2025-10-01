@@ -1,8 +1,7 @@
 # Marketing Creative Agent
 
-This is an example implementation of an AI agent for the marketing domain of a supermarket retailer.  The agent is designed to generate marketing images based on text prompts, leveraging Google's Generative AI models and the Google Agent Development Kit (ADK).  This AI agent has a Domain layer that captures business logic and state.
+This is an example implementation of an AI agent for the marketing domain of a supermarket retailer.  The agent is designed to generate marketing images based on text prompts, leveraging Google's Generative AI models and the Google Agent Development Kit (ADK).  This AI agent has an Application layer that contains the use cases of our agent and is the entry point for all external interactions.
 
-The project follows principles of Domain-Driven Design (DDD) by modeling the core business concept of a `MarketingImage` as an aggregate, which is persisted along with its domain events.
 The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compliant web server.
 
 ## Table of Contents
@@ -22,18 +21,12 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 - **Image Generation**: Generates marketing images from text descriptions - e.g. "A shopping cart full of fresh vegetables".
 - **A2A Compliant**: Implements the A2A (Agent-to-Agent) protocol for standardised agent communication.
 - **Tool-Using Agent**: Utilises the Google ADK to create an agent that uses a custom tool for image generation.
-- **Domain-Driven Design**: Models the `MarketingImage` as a domain aggregate, capturing its state and lifecycle.
-- **Cloud Integrated**: Stores generated images in a Google Cloud Storage bucket and persists the `MarketingImage` aggregate state and domain events in Google Cloud Firestore.
+- **Cloud Integrated**: Stores generated images in a Google Cloud Storage bucket.
 - **Containerised**: Includes a `Dockerfile` for easy deployment and scaling.
 
 ## Architecture
 
-- **Domain Layer (`marketing_image_agent/domain`)**: The core of the application, containing the business logic. It defines the `MarketingImage` aggregate, its factory, and domain events.  This layer is independent of external concerns like databases or frameworks.
-- **Agent & Tools (`marketing_image_agent/agent.py`)**: Contains the agent definition using Google ADK.  The agent is instructed to use a tool (`generate_image_tool`) which orchestrates the image generation process:
-  1.  Calls the `imagen` model on Vertex AI to generate an image.
-  2.  Stores the image file in Google Cloud Storage.
-  3.  Creates a `MarketingImage` aggregate instance with the image metadata.
-  4.  Persists the aggregate and its domain events to Google Cloud Firestore using a repository pattern.
+- **Core Logic (`marketing_image_agent`)**: Contains the agent definition using Google ADK.  The agent is instructed to use a tool (`generate_image_tool`) which calls the `imagen` model on Vertex AI to generate an image and then stores it in Google Cloud Storage.
 - **Agent Executor (`agent_executor.py`)**: Acts as a bridge between the A2A server and the Google ADK agent.  The `ADKAgentExecutor` handles incoming requests, invokes the ADK runner, and manages the task lifecycle.
 - **Web Framework (`__main__.py`)**: Sets-up and runs a Starlette web application using the `a2a-sdk`.  It defines the agent's public-facing `AgentCard` (its capabilities, skills, and endpoints) and routes incoming HTTP requests to the `ADKAgentExecutor`.
 
@@ -45,7 +38,6 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 - uv (recommended for dependency management)
 - Access to a Google Cloud Platform project.
 - A Google Cloud Storage bucket.
-- A Google Cloud Firestore database.
 - Authenticated gcloud CLI or a service account with permissions for Vertex AI and Cloud Storage.
 
 ### Configuration
@@ -56,16 +48,11 @@ The application is configured using environment variables.  Create a `.env` file
 # GCP Configuration
 GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
 GOOGLE_CLOUD_LOCATION="europe-west4" # Or your preferred Google Cloud region
-
-# Storage & Repository Configuration
 GOOGLE_CLOUD_STORAGE_BUCKET="your-gcs-bucket-name"
-GOOGLE_CLOUD_FIRESTORE_REPOSITORY_DATABASE="(default)" # Or your Firestore DB name
-GOOGLE_CLOUD_FIRESTORE_REPOSITORY_COLLECTION_MARKETING_IMAGES="marketing-image-aggregates"
-GOOGLE_CLOUD_FIRESTORE_REPOSITORY_COLLECTION_MARKETING_IMAGE_EVENTS="marketing-image-domain-events"
 
 # Agent & Model Configuration (defaults are provided in the code)
-ADK_MODEL_1_NAME="gemini-1.5-flash"
-GOOGLE_CLOUD_GENAI_IMAGE_MODEL_1_NAME="imagen-3.0-generate-fast-001"
+ADK_MODEL_1_NAME="gemini-2.5-flash"
+GOOGLE_CLOUD_GENAI_IMAGE_MODEL_1_NAME="imagen-4.0-fast-generate-001"
 
 # Application URL (optional)
 APP_URL="http://0.0.0.0:8080"
@@ -127,24 +114,14 @@ docker run --rm -p 8080:8080 \
 
 ## Project Structure
 
-```plaintext
-├── marketing_image_agent/
-│   ├── domain/                 # Core business logic (DDD), independent of external concerns
-│   │   ├── entities/           # Contains the domain aggregates, like MarketingImage
-│   │   ├── events/             # Contains the domain event definitions
-│   │   ├── factories/          # Responsible for creating complex domain objects
-│   │       ├── marketing_image_aggregate_factory.py
-│   │       └── marketing_image_domain_events_factory.py
-│   │   ├── services/           # Contains domain services with logic that doesn't fit in an aggregate
-│   │   └── value_objects/      # Contains the value objects that model descriptive aspects of the domain
-│   ├── shared/
-│   │   └── utils.py
-│   ├── agent.py                # Defines ADK agent, tools, GCS client, and Firestore repository
+```
+├── marketing_image_agent/  # Core agent logic
+│   ├── agent.py            # Defines the ADK agent, tools, and GCS client
 │   └── __init__.py
-├── __main__.py                 # Application entrypoint, sets up the A2A Starlette app
-├── agent_executor.py           # Bridge between the A2A server and the ADK agent
-├── config.py                   # Application configuration management
-├── Dockerfile                  # For containerising the application
-├── requirements.txt            # Pinned dependencies
-└── .env.example                # Example environment variables
+├── __main__.py             # Application entrypoint, sets up the A2A Starlette app
+├── agent_executor.py       # Bridge between the A2A server and the ADK agent
+├── Dockerfile              # For containerizing the application
+├── pyproject.toml          # Project metadata and dependencies
+├── requirements.txt        # Pinned dependencies for production
+└── .env.example            # Example environment variables
 ```

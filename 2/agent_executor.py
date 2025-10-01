@@ -1,0 +1,142 @@
+import uuid
+from a2a.server.agent_execution import AgentExecutor, RequestContext
+from a2a.server.events import EventQueue
+from a2a.server.tasks import TaskUpdater
+from a2a.types import (
+    Part,
+    TaskState,
+    TextPart,
+)
+from a2a.utils import new_agent_text_message, new_task
+from google.adk.artifacts import InMemoryArtifactService, GcsArtifactService
+from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
+from google.adk.runners import Runner
+from google.adk.sessions import InMemorySessionService
+from google.genai import types
+
+from marketing_image_agent.agent import agent
+
+
+class ADKAgentExecutor(AgentExecutor):
+    def __init__(
+        self,
+        agent,
+        artifact_storage_bucket_name: str = None,
+        status_message="Processing request...",
+        artifact_name="response",
+    ):
+        """Initialise a generic ADK agent executor.
+
+        Args:
+            agent: The ADK agent instance
+            status_message: Message to display while processing
+            artifact_name: Name for the response artifact
+        """
+        if artifact_storage_bucket_name is None:
+            self.adk_artifact_storage = InMemoryArtifactService()
+        else:
+            try:
+                self.adk_artifact_storage = GcsArtifactService(bucket_name=artifact_storage_bucket_name)
+                print(f"Python ADK GcsArtifactService initialised for bucket: {artifact_storage_bucket_name}")
+            except Exception as e:
+                print(f"Error initialising Python ADK GcsArtifactService: {e}")
+        self.agent = agent
+        self.status_message = status_message
+        self.artifact_name = artifact_name
+        self.runner = Runner(
+            app_name=agent.name,
+            agent=agent,
+            artifact_service=self.adk_artifact_storage,
+            session_service=InMemorySessionService(),
+            memory_service=InMemoryMemoryService(),
+        )
+
+    async def cancel(
+        self,
+        context: RequestContext,
+        event_queue: EventQueue,
+    ) -> None:
+        """Cancel the execution of a specific task."""
+        raise NotImplementedError(
+            "Cancellation is not implemented for ADKAgentExecutor."
+        )
+
+    async def execute(
+        self,
+        context: RequestContext,
+        event_queue: EventQueue,
+    ) -> None:
+        if not context.message:
+            raise ValueError("Message should be present in request context")
+
+        query = context.get_user_input()
+        task = context.current_task or new_task(context.message)
+        await event_queue.enqueue_event(task)
+
+        updater = TaskUpdater(event_queue, task.id, task.context_id)
+        
+        # Prioritise the structured call_context, then fall back to custom metadata
+        user_id_from_context = getattr(context.call_context, 'user.user_name', None)
+        if not user_id_from_context and context.message and context.message.metadata:
+            user_id_from_context = context.message.metadata.get('user_id')
+
+        if user_id_from_context:
+            try:
+                uuid.UUID(user_id_from_context)
+                user_id = user_id_from_context
+                # print(f"Using valid UUID user ID from context: {user_id}")
+            except ValueError:
+                # print(f"ID from context '{user_id_from_context}' is not a valid UUID and our user_id value object is a UUID.  Generating new user ID.")
+                user_id = str(uuid.uuid4())
+        else:
+            print("No user ID found in context. Generating new user ID.")
+            user_id = str(uuid.uuid4())
+        print(f"User ID for this session: {user_id}")
+
+        try:
+            # Update status with custom message
+            await updater.update_status(
+                TaskState.working,
+                new_agent_text_message(self.status_message, task.context_id, task.id),
+            )
+
+            # Process with ADK agent
+            session = await self.runner.session_service.create_session(
+                app_name=self.agent.name,
+                user_id=user_id,
+                state={},
+                session_id=task.context_id,
+            )
+
+            content = types.Content(
+                role="user", parts=[types.Part.from_text(text=query)]
+            )
+
+            response_parts = []
+            async for event in self.runner.run_async(
+                user_id=user_id, session_id=session.id, new_message=content
+            ):
+                if event.is_final_response() and event.content:
+                    for part in event.content.parts:
+                        if hasattr(part, "text") and part.text:
+                            response_parts.append(part.text)
+
+            response_text = "\n".join(response_parts)
+
+            # Add response as artifact with custom name
+            await updater.add_artifact(
+                [Part(root=TextPart(text=response_text))],
+                name=self.artifact_name,
+            )
+
+            await updater.complete()
+
+        except Exception as e:
+            await updater.update_status(
+                TaskState.failed,
+                new_agent_text_message(f"Error: {e!s}", task.context_id, task.id),
+                final=True,
+            )
+
+
+agent_executor = ADKAgentExecutor(agent=agent)

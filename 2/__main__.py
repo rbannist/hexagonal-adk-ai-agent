@@ -49,42 +49,6 @@ async def main():
                     "A shopping cart full of fresh vegetables.",
                     "Two pineapples in a supermarket frozen aisle.",
                 ],
-            ),
-            AgentSkill(
-                id="accept_marketing_image",
-                name="Accept Marketing Image",
-                description="Marks a marketing image as accepted, using its ID.",
-                tags=["image", "accept", "marketing"],
-                examples=[
-                    "Accept image with ID 123e4567-e89b-12d3-a456-426614174000",
-                ],
-            ),
-            AgentSkill(
-                id="reject_marketing_image",
-                name="Reject Marketing Image",
-                description="Marks a marketing image as rejected, using its ID.",
-                tags=["image", "reject", "marketing"],
-                examples=[
-                    "Reject image with ID 123e4567-e89b-12d3-a456-426614174000",
-                ],
-            ),
-            AgentSkill(
-                id="remove_marketing_image",
-                name="Remove Marketing Image",
-                description="Marks a marketing image as removed, using its ID.",
-                tags=["image", "remove", "delete", "marketing"],
-                examples=[
-                    "Remove image with ID 123e4567-e89b-12d3-a456-426614174000",
-                ],
-            ),
-            AgentSkill(
-                id="change_marketing_image_metadata",
-                name="Change Marketing Image Metadata",
-                description="Changes the description and keywords for a marketing image, using its ID.",
-                tags=["image", "edit", "metadata", "marketing"],
-                examples=[
-                    "Update image 123e4567-e89b-12d3-a456-426614174000 with description 'A better description' and keywords 'new, keywords'",
-                ],
             )
         ],
     )

@@ -62,12 +62,12 @@ class Config:
         self.ai_adk_agent_1_description = _get_config(
             ai_adk_agent_1_description,
             "ADK_AGENT_1_DESCRIPTION",
-            "Agent to generate, accept, reject, remove, and change the metadata of images for the marketing department within a supermarket retailer.",
+            "Agent to generate images for the marketing department within a supermarket retailer.",
         )
         self.ai_adk_agent_1_instruction = _get_config(
             ai_adk_agent_1_instruction,
             "ADK_AGENT_1_INSTRUCTION",
-            "Firstly, determine whether the user wishes to generate, accept, reject, remove, and change the metadata of an image.  If the user wants to generate an image (this should be your default assumption if a request to accept, reject, remove, or change isn't specifically made), create a prompt based on what the user asks for and then pass the prompt to the generate_image tool.  Then pass the response from the tool back to the user to conclude each interaction.  If the user specifically asks to accept, reject, remove, or change the metadata of an image, use the appropriate tool to complete that request.  Then pass back the tool's response to the user.",
+            "Create a prompt based on what the user asks for and then pass the prompt to the generate_image tool.  Pass the response from the tool back to the user to conclude each interaction.",
         )
         self.ai_image_model_1_location = _get_config(
             ai_image_model_1_location, "GOOGLE_CLOUD_LOCATION", "europe-west4"
