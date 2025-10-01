@@ -1,7 +1,7 @@
 import os
 import io
 from google import genai
-from google.genai import types
+from google.genai import types as genai_types
 
 from ....application.ports.generate_marketing_image_genai_output_port import MarketingImageImageGenerationOutputPort
 
@@ -43,7 +43,7 @@ class MarketingImageGoogleImagenGenAIAdapter(MarketingImageImageGenerationOutput
             vertexai=True,
             project=self.google_cloud_project,
             location=self.ai_model_location,
-            http_options=types.HttpOptions(api_version='v1')
+            http_options=genai_types.HttpOptions(api_version='v1')
         )
 
     def _get_closest_generation_aspect_ratio_and_dimensions(self, min_dimensions: dict = None, max_dimensions: dict = None) -> tuple[int, int, str]:
@@ -98,20 +98,23 @@ class MarketingImageGoogleImagenGenAIAdapter(MarketingImageImageGenerationOutput
                 mime_type: The MIME type of the generated marketing image.
                 generation_model: The name of the model used for generation.
                 image_dimensions: A dictionary containing the dimensions of th generated marketing image (height, width).
+                generation_parameters: A dictionary containing the parameters used for generation.
         """
         # Determine the aspect ratio and actual dimensions for the AI generatin
         generated_width, generated_height, aspect_ratio_for_generation = self._get_closest_generation_aspect_ratio_and_dimensions(min_dimensions, max_dimensions)
 
+        generation_parameters = {
+            "number_of_images": 1,
+            "image_size": "1K", # This implies the largest dimension will be 1024, and the other scaled by aspect_ratio
+            "aspect_ratio": aspect_ratio_for_generation,
+            "person_generation": "allow_adult",
+            "output_mime_type": mime_type,
+        }
+
         response = self.genai_images_client.models.generate_images(
             model=self.ai_model_name,
             prompt=prompt,
-            config=types.GenerateImagesConfig( # type: ignore
-                number_of_images=1,
-                image_size="1K", # This implies the largest dimension will be 024, and the other scaled by aspect_ratio
-                aspect_ratio=aspect_ratio_for_generation,
-                person_generation="allow_adult",
-                output_mime_type=mime_type,
-            ),
+            config=genai_types.GenerateImagesConfig(**generation_parameters),
         )
 
         generated_image = response.generated_images[0]
@@ -171,4 +174,5 @@ class MarketingImageGoogleImagenGenAIAdapter(MarketingImageImageGenerationOutput
                 "height": img_height,
                 "width": img_width,
             },
+            "generation_parameters": generation_parameters,
         }

@@ -53,8 +53,14 @@ class MarketingImageGoogleGeminiFlash2dot5ImageGenAIAdapter(MarketingImageImageG
                 mime_type: The MIME type of the generated marketing image.
                 generation_model: The name of the model used for generation.
                 image_dimensions: A dictionary containing the dimensions of the generated marketing image (height, width).
+                generation_parameters: A dictionary containing the parameters used for generation.
         """
 
+        generation_parameters = {
+            "number_of_images": 1,
+            "output_mime_type": mime_type,
+        }
+        
         response = self.genai_client.models.generate_content(model=self.ai_model_name, contents=prompt)
 
         image_parts = [
@@ -92,4 +98,5 @@ class MarketingImageGoogleGeminiFlash2dot5ImageGenAIAdapter(MarketingImageImageG
                 "height": img_height,
                 "width": img_width,
             },
+            "generation_parameters": generation_parameters,
         }

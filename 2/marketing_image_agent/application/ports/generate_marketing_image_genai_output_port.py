@@ -26,5 +26,6 @@ class MarketingImageImageGenerationOutputPort(BaseOutputPort[T], ABC):
             mime_type: The MIME type of the generated marketing image.
             generation_model: The name of the model used to generate the marketing image.
             image_dimensions: A dictionary containing the dimensions of the generated marketing image (height, width).
+            generation_parameters: A dictionary containing the parameters used to generate the marketing image.
         """
         pass

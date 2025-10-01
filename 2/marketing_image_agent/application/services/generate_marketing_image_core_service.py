@@ -49,6 +49,7 @@ class GenerateMarketingImageCoreService:
         generated_image_model = generated_marketing_image["generation_model"]
         generated_image_height = generated_image_dimensions["height"]
         generated_image_width = generated_image_dimensions["width"]
+        generated_image_generation_parameters = generated_marketing_image["generation_parameters"]
         generated_image_size = len(generated_image_bytes)
 
         storage_saved_image_url, storage_saved_image_checksum = self.object_storage.save_marketing_image_object(image_data=generated_image_bytes, file_name=image_file_name, content_type=generated_image_mime_type, fixed_key_metadata={"content_type":generated_image_mime_type}, custom_metadata={"key1":"value1"})
@@ -59,7 +60,7 @@ class GenerateMarketingImageCoreService:
                 "description": image_generation_prompt,
                 "keywords": ["retail"],
                 "generation_model": generated_image_model,
-                "generation_parameters": {"parameter1": "value1"},
+                "generation_parameters": generated_image_generation_parameters,
                 "dimensions": {"width": generated_image_width, "height": generated_image_height},
                 "status": "GENERATED",
                 "size": generated_image_size,
