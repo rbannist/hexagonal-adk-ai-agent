@@ -27,7 +27,7 @@ class IntegrationEvent(ABC):
 
     @staticmethod
     def get_event_type(event_name: str):
-        prefix = os.getenv("INTEGRATION_EVENT_PREFIX", "ai.mancdev.integrationevent.marketing-image")
+        prefix = os.getenv("INTEGRATION_EVENT_PREFIX", "ai.dev.integrationevent.marketing-image")
         return f"{prefix}.{event_name}"
 
     def __init__(

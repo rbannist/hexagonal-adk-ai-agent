@@ -48,6 +48,7 @@ async def main():
                 examples=[
                     "A shopping cart full of fresh vegetables.",
                     "Two pineapples in a supermarket frozen aisle.",
+                    "Generate me an image of 3 happy beetroots",
                 ],
             ),
             AgentSkill(
@@ -84,6 +85,7 @@ async def main():
                 tags=["image", "edit", "metadata", "marketing"],
                 examples=[
                     "Update image 123e4567-e89b-12d3-a456-426614174000 with description 'A better description' and keywords 'new, keywords'",
+                    "Update the record of image 123e4567-e89b-12d3-a456-426614174000 to have its actual dimensions of 512*512'",
                 ],
             )
         ],

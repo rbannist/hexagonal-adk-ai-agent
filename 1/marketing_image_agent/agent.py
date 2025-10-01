@@ -249,7 +249,7 @@ def generate_image_tool(prompt: str) -> dict:
         A dictionary containing the result of the image generation process.
     """
 
-    image_id = uuid.uuid4()
+    image_id = uuid.uu
     file_name = f"marketing-{image_id}.png"
     mime_type = "image/png"
     img_width, img_height = 0, 0

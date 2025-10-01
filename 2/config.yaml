@@ -1,18 +1,23 @@
+service:
+  port: 8080
+  host: "0.0.0.0"
+  app_url: "http://localhost:8080"
+  name: marketing-creative-agent
+
 gcp:
-  service_name: marketing-creative-agent
   project_id: "rbal-assisted-prj1"
   location: "europe-west4"
   image_generation_model_family: "imagen" # imagen, gemini
 
 dispatcher:
   command:
-    prefix: ai.mancdev.command.marketing-image
+    prefix: ai.dev.command.marketing-image
     type: "in_memory" # in_memory, pubsub
   domain_event:
-    prefix: ai.mancdev.domain-event.marketing-image
+    prefix: ai.dev.domain-event.marketing-image
     type: "in_memory"
   integration_event:
-    prefix: ai.mancdev.integration-event.marketing-image
+    prefix: ai.dev.integration-event.marketing-image
 
 repository:
   firestore:
@@ -29,6 +34,12 @@ object_storage:
     bucket: "rbal-assisted-csew4sb1"
 
 genai:
+  adk:
+    agent_1_artifact_storage_bucket_name: "rbal-assisted-csew4adkassb1"
+    agent_1_model_1_name: "gemini-2.5-flash"
+    agent_1_name: "marketing_image_generating_agent"
+    agent_1_description: "Agent to generate images for the marketing department within a supermarket retailer"
+    agent_1_instruction: "Create a prompt based on what the user asks for and then pass the prompt to the generate_image tool.  Pass the response from the tool back to the user to conclude each interaction."
   vertex_ai:
     image:
       project_id: "rbal-assisted-prj1"
@@ -46,24 +57,3 @@ messaging:
     project_id: "rbal-assisted-prj1"
     location: "global"
     topic: "rbal-assisted-psiemit1"
-
-event_store:
-  domain:
-    firestore:
-      project_id: "rbal-assisted-prj1"
-      location: "europe-west4"
-      database: "claim-check-ew4-1"
-      collection: "marketing-image-domain-events"
-  integration:
-    firestore:
-      project_id: "rbal-assisted-prj1"
-      location: "europe-west4"
-      database: "claim-check-ew4-1"
-      collection: "marketing-image-integration-events"
-
-primary_read_view:
-  firestore:
-    project_id: "rbal-assisted-prj1"
-    location: "europe-west4"
-    database: "claim-check-ew4-1"
-    collection: "marketing-image-view-1"

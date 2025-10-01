@@ -6,13 +6,13 @@ This project is a starting point for building AI agents using the Agent Developm
 
 ## The Path to Hexagonal Architecture
 
-This repository is structured to guide you through the process of building a sophisticated, maintainable, and scalable AI agent.  We'll start with a basic ADK agent and incrementally introduce the concepts of hexagonal architecture.
+This repository is structured to guide you through the process of building a sophisticated, maintainable, and scalable AI agent.  We'll start with a basic ADK + A2A agent and incrementally introduce the concepts of hexagonal architecture.
 
 | Step | What's Being Introduced | Why It's Valuable |
 | :--- | :--- | :--- |
-| **0** | **The Initial ADK + A2A Agent** | This is our starting point.  The agent is designed to generate marketing images based on text prompts. |
-| **1** | **The Domain Model and Aggregate Repository** | We need a deterministic core to apply business logic and capture business state.  It's where we model rules of our agent's world and capture and store business state.  Here we ensure that the agent is built around the core concepts of the problem we're trying to solve. |
-| **2** | **The Application and Infrastructure Layers** | The Application Layer orchestrates.  It contains the use cases of our agent and is the entry point for all external interactions.  By creating a separate application layer, we decouple the core logic from the outside world. The Infrastructure Layer and its Adapters are the glue that connects our agent to the outside world.  They implement the interfaces defined in the application layer and interact with things like databases, APIs, and user interfaces.  This is where we see hexagonal architecture take shape. |
+| **0** | **The Initial ADK + A2A Agent** | This is our starting point.  The agent is designed to deal with lifecycle of AI-generated marketing images based on text prompts. |
+| **1** | **The Domain Model, Aggregate Repository, and Domain Event store** | We need a deterministic core to apply business logic and capture business state.  It's where we model rules of our agent's world and capture and store business state.  Here we ensure that the agent is built around the core concepts of the problem we're trying to solve.  This capturing of business logic and state is what will allow us to produce meaningful audit logs, enable loose-coupling of agents and system components and {micro}services, align with Event-Driven Architecture patterns, tie agent actions with business controls and metrics, etc.  |
+| **2** | **The Application and Infrastructure Layers** | The Application Layer orchestrates.  It contains the use cases of our agent and is the entry point for all external interactions.  By creating a separate application layer, we decouple the core logic from the outside world.  The Infrastructure Layer and its Adapters are the glue that connects our agent to the outside world.  They implement the interfaces defined in the application layer and interact with things like databases, APIs, user interfaces, etc.  This is where we see hexagonal architecture take shape and we also introduce new  ports and adapters for additional purposes and configurations due to the flexibility afforded by the pattern - e.g. interchangeable Imagen and Gemini Flash Image adapters. |
 
 -----------------------------------------------------------------------------------------------------------
 
@@ -56,7 +56,7 @@ This repository is structured to guide you through the process of building a sop
 
 2.  **Create and activate a virtual environment for each of the steps**
     ```bash
-    cd <directory -e.g. hexagonal-adk-ai-agent/0>
+    cd <directory - e.g. hexagonal-adk-ai-agent/0>
     uv venv
     source .venv/bin/activate
     ```

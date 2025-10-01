@@ -14,8 +14,6 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
-from marketing_image_agent.agent import agent
-
 
 class ADKAgentExecutor(AgentExecutor):
     def __init__(
@@ -137,6 +135,3 @@ class ADKAgentExecutor(AgentExecutor):
                 new_agent_text_message(f"Error: {e!s}", task.context_id, task.id),
                 final=True,
             )
-
-
-agent_executor = ADKAgentExecutor(agent=agent)
