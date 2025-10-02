@@ -30,6 +30,53 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 - **Agent Executor (`agent_executor.py`)**: Acts as a bridge between the A2A server and the Google ADK agent.  The `ADKAgentExecutor` handles incoming requests, invokes the ADK runner, and manages the task lifecycle.
 - **Web Framework (`__main__.py`)**: Sets-up and runs a Starlette web application using the `a2a-sdk`.  It defines the agent's public-facing `AgentCard` (its capabilities, skills, and endpoints) and routes incoming HTTP requests to the `ADKAgentExecutor`.
 
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant A2AStarletteApplication
+    participant DefaultRequestHandler
+    participant ADKAgentExecutor
+    participant Runner
+    participant marketing_image_agent
+    participant GoogleCloudStorage
+    participant VertexAI
+
+    User->>A2AStarletteApplication: HTTP Request
+    A2AStarletteApplication->>DefaultRequestHandler: handle_request()
+    DefaultRequestHandler->>ADKAgentExecutor: execute()
+    ADKAgentExecutor->>Runner: run_async()
+    Runner->>marketing_image_agent: call tool
+    alt generate_marketing_image
+        marketing_image_agent->>VertexAI: generate_images()
+        VertexAI-->>marketing_image_agent: image_bytes
+        marketing_image_agent->>GoogleCloudStorage: save_marketing_image_object()
+        GoogleCloudStorage-->>marketing_image_agent: public_url, checksum
+        marketing_image_agent-->>Runner: image details
+    else accept_marketing_image
+        marketing_image_agent->>GoogleCloudStorage: update_marketing_image_metadata()
+        GoogleCloudStorage-->>marketing_image_agent: success/failure
+        marketing_image_agent-->>Runner: status
+    else reject_marketing_image
+        marketing_image_agent->>GoogleCloudStorage: update_marketing_image_metadata()
+        GoogleCloudStorage-->>marketing_image_agent: success/failure
+        marketing_image_agent-->>Runner: status
+    else remove_marketing_image
+        marketing_image_agent->>GoogleCloudStorage: delete_marketing_image_object()
+        GoogleCloudStorage-->>marketing_image_agent: success/failure
+        marketing_image_agent-->>Runner: status
+    else change_marketing_image_metadata
+        marketing_image_agent->>GoogleCloudStorage: update_marketing_image_metadata()
+        GoogleCloudStorage-->>marketing_image_agent: success/failure
+        marketing_image_agent-->>Runner: status
+    end
+    Runner-->>ADKAgentExecutor: response
+    ADKAgentExecutor->>DefaultRequestHandler: response
+    DefaultRequestHandler->>A2AStarletteApplication: response
+    A2AStarletteApplication-->>User: HTTP Response
+```
+
 ## Getting Started
 
 ### Prerequisites
