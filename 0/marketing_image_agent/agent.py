@@ -37,7 +37,11 @@ class GoogleCloudStorage:
         self.storage_bucket = self.storage_client.bucket(self.storage_bucket_name)
 
     def save_marketing_image_object(
-        self, image_data: bytes, file_name: str, content_type: str
+        self,
+        image_data: bytes,
+        file_name: str,
+        content_type: str,
+        metadata: dict = None,
     ) -> Tuple[Optional[str], Optional[str]]:
         """
         Saves image data to Google Cloud Storage.
@@ -46,6 +50,7 @@ class GoogleCloudStorage:
             image_data: The byte data of the image.
             file_name: The desired file name for the image in GCS.
             content_type: The content type of the image - e.g. 'image/png'.
+            metadata: A dictionary of custom metadata to set on the object.
 
         Returns:
             A tuple containing the public URL and the base64-encoded MD5 checksum
@@ -54,6 +59,8 @@ class GoogleCloudStorage:
         blob = self.storage_bucket.blob(file_name)
         public_url = None
         checksum = None
+        if metadata:
+            blob.metadata = metadata       
         try:
             blob.upload_from_string(image_data, content_type=content_type)
 
@@ -65,6 +72,38 @@ class GoogleCloudStorage:
             logger.error(f"Error uploading image to GCS: {e}")
             return public_url, checksum
 
+    def update_marketing_image_metadata(
+        self, file_name: str, metadata: dict
+    ) -> bool:
+        """
+        Updates custom metadata for an existing object in Google Cloud Storage.
+
+        Args:
+            file_name: The name of the file in GCS.
+            metadata: A dictionary containing the metadata to update.
+
+        Returns:
+            True if the update was successful, False otherwise.
+        """
+        blob = self.storage_bucket.blob(file_name)
+        try:
+            blob.patch()  # Fetch the latest metadata
+            current_metadata = blob.metadata or {}
+            current_metadata.update(metadata)
+            blob.metadata = current_metadata
+            blob.patch()
+            logger.info(f"Updated metadata for {file_name}: {metadata}")
+            return True
+        except Exception as e:
+            logger.error(f"Error updating metadata for {file_name}: {e}")
+            return False
+
+    def delete_marketing_image_object(self, file_name: str):
+        """Deletes an object from Google Cloud Storage."""
+        blob = self.storage_bucket.blob(file_name)
+        blob.delete()
+        logger.info(f"Deleted {file_name} from bucket {self.storage_bucket_name}.")
+
 
 storage_client = GoogleCloudStorage(
     config.google_cloud_project, config.storage_bucket_name
@@ -72,20 +111,23 @@ storage_client = GoogleCloudStorage(
 
 
 def generate_image_tool(prompt: str) -> dict:
-    """Generates an image using Vertex AI and the Imagen 3.0 Fast Generate model, stores it in a Google Cloud Storage bucket, and gives the object's URL to the user.
+    """Generates an image using Vertex AI and the Imagen 4.0 Fast Generate model, stores it in a Google Cloud Storage bucket, and gives the object's information to the user.
 
     Returns:
         A dictionary containing the result of the image generation process.
     """
 
-    file_name = f"marketing-{uuid.uuid4()}.png"
+    image_id = str(uuid.uuid4())
+    file_name = f"marketing-{image_id}.png"
     mime_type = "image/png"
+    image_storage_region = config.ai_image_model_1_location
+    genai_image_model_region = config.ai_image_model_1_location
     img_width, img_height = 0, 0
 
     genai_images_client = genai.Client(
         vertexai=True,
         project=config.google_cloud_project,
-        location=config.ai_image_model_1_location,
+        location=genai_image_model_region,
         http_options=types.HttpOptions(api_version="v1"),
     )
 
@@ -112,10 +154,17 @@ def generate_image_tool(prompt: str) -> dict:
         f"Image generated using {config.ai_image_model_1_name} with size {len(generated_image_bytes)}, mime type {generated_image_mime_type}, and dimensions {img_height}*{img_width}"
     )
 
+    initial_metadata = {
+        "approvalStatus": "pending",
+        "description": prompt,
+        "keywords": "",
+    }    
+
     public_url, checksum = storage_client.save_marketing_image_object(
         image_data=generated_image_bytes,
         file_name=file_name,
         content_type=generated_image_mime_type,
+        metadata=initial_metadata,
     )
     image_storage_url = public_url
 
@@ -126,7 +175,68 @@ def generate_image_tool(prompt: str) -> dict:
     else:
         logger.error(f"Failed to upload file {file_name} to cloud storage.")
 
-    return {"image_storage_url": image_storage_url}
+    return {
+        "image_id": image_id,
+        "image_storage_region": image_storage_region,
+        "image_storage_url": image_storage_url
+    }
+
+
+def accept_image_tool(image_id: str) -> dict:
+    file_name = f"marketing-{image_id}.png"
+    metadata = {"approvalStatus": "accepted"}
+    if storage_client.update_marketing_image_metadata(file_name, metadata):
+        return {
+            "image_id": image_id,
+            "message": "image approval status set as accepted",
+        }
+    else:
+        return {"image_id": image_id, "message": "failed to set image approval status"}
+
+def reject_image_tool(image_id: str) -> dict:
+    file_name = f"marketing-{image_id}.png"
+    metadata = {"approvalStatus": "rejected"}
+    if storage_client.update_marketing_image_metadata(file_name, metadata):
+        return {
+            "image_id": image_id,
+            "message": "image approval status set as rejected",
+        }
+    else:
+        return {"image_id": image_id, "message": "failed to set image approval status"}
+
+
+def remove_image_tool(image_id: str) -> dict:
+    file_name = f"marketing-{image_id}.png"
+    try:
+        storage_client.delete_marketing_image_object(file_name)
+        return {"image_id": image_id, "message": "image object removed from storage"}
+    except Exception as e:
+        logger.error(f"Failed to remove image {image_id}: {e}")
+        return {"image_id": image_id, "message": "failed to remove image object from storage"}
+
+
+def change_image_metadata_tool(image_id: str, new_description: Optional[str] = None, new_keywords: Optional[list[str]] = None) -> dict:
+    file_name = f"marketing-{image_id}.png"
+    metadata_to_update = {}
+    changed_fields = []
+
+    if new_description is not None:
+        metadata_to_update["description"] = new_description
+        changed_fields.append("description")
+
+    if new_keywords is not None:
+        metadata_to_update["keywords"] = ",".join(new_keywords)
+        changed_fields.append("keywords")
+
+    if not metadata_to_update:
+        return {"image_id": image_id, "message": "image object metadata not changed"}
+
+    if storage_client.update_marketing_image_metadata(file_name, metadata_to_update):
+        message = f"image object { ' and '.join(changed_fields) } changed"
+        return {"image_id": image_id, "message": message}
+    else:
+        return {"image_id": image_id, "message": "failed to change image object metadata"}
+
 
 
 def create_agent(config: Config) -> Agent:
@@ -135,7 +245,7 @@ def create_agent(config: Config) -> Agent:
         model=config.ai_adk_model_1_name,
         description=config.ai_adk_agent_1_description,
         instruction=config.ai_adk_agent_1_instruction,
-        tools=[generate_image_tool],
+        tools=[generate_image_tool, accept_image_tool, reject_image_tool, remove_image_tool, change_image_metadata_tool],
     )
     return agent
 

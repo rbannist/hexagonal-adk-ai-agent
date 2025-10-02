@@ -13,4 +13,4 @@ USER myuser
 
 ENV PATH="/home/myuser/.local/bin:$PATH"
 
-CMD ["sh", "-c", "uv run python __main__.py"]
+CMD ["sh", "-c", "python __main__.py"]

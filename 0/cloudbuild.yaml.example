@@ -1,0 +1,92 @@
+steps:
+  # # 1. Check dependency installs
+  # - name: python
+  #   entrypoint: pip
+  #   args: ["install", "-r", "requirements.txt", "--user"]
+
+  # # 2. Run unit tests
+  # - name: python
+  #   entrypoint: python
+  #   args: ["-m", "pytest", "--junitxml=${SHORT_SHA}_test_log.xml"] 
+
+  # 3. Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_NAME_1}:${BUILD_ID}'
+      - '.'
+    id: 'Build'
+
+  # 4. Push the container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_NAME_1}:${BUILD_ID}'
+      # - '--all-tags'
+    id: 'Push'
+
+  # 5. Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_1_RUN_RESOURCE_NAME}'
+      - '--platform'
+      - 'managed'
+      - '--image'
+      - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_NAME_1}:${BUILD_ID}'
+      - '--project'
+      - '${_GC_PROJECT_ID_1}'
+      - '--region'
+      - '${_GC_REGION_1}'
+      - '--service-account'
+      - '${_SERVICE_1_ACCOUNT}'
+      - '--concurrency'
+      - '${_SERVICE_1_RUN_RESOURCE_CONCURRENCY}'
+      - '--memory'
+      - '${_SERVICE_1_RUN_RESOURCE_MEMORY}'
+      - '--cpu'
+      - '${_SERVICE_1_RUN_RESOURCE_CPU}'
+      - '--description'
+      - '${_SERVICE_1_DESCRIPTION}'
+      - '--max-instances'
+      - '${_SERVICE_1_RUN_RESOURCE_MAX_INSTANCES}'
+      - '--set-env-vars'
+      - >-
+        GOOGLE_CLOUD_PROJECT=${_GC_PROJECT_ID_1},
+        GOOGLE_CLOUD_LOCATION=${_GC_REGION_1},
+        GOOGLE_GENAI_USE_VERTEXAI=${_GOOGLE_GENAI_USE_VERTEXAI},
+        ADK_ARTIFACT_STORAGE_BUCKET=${_ADK_ARTIFACT_STORAGE_BUCKET},
+        ADK_MODEL_1_NAME=${_ADK_MODEL_1_NAME},
+        ADK_AGENT_1_NAME=${_ADK_AGENT_1_NAME},
+        ADK_AGENT_1_DESCRIPTION="${_ADK_AGENT_1_DESCRIPTION}",
+        ADK_AGENT_1_INSTRUCTION="${_ADK_AGENT_1_INSTRUCTION}",
+        GOOGLE_CLOUD_GENAI_IMAGE_MODEL_1_NAME=${_GOOGLE_CLOUD_GENAI_IMAGE_MODEL_1_NAME},
+        GOOGLE_CLOUD_STORAGE_BUCKET=${_GOOGLE_CLOUD_STORAGE_BUCKET}
+    id: 'Deploy'
+
+substitutions:
+  _GC_PROJECT_ID_1: 'rbal-assisted-prj1'
+  _SERVICE_NAME_1: 'marketing-creative-agent'
+  _SERVICE_1_DESCRIPTION: 'A marketing creative AI agent that helps users generate images'
+  _SERVICE_1_ACCOUNT: 'rbal-assisted-sacrcma1@rbal-assisted-prj1.iam.gserviceaccount.com'
+  _SERVICE_1_RUN_RESOURCE_NAME: 'rbal-assisted-crew4mca1'
+  _SERVICE_1_RUN_RESOURCE_CONCURRENCY: '20'
+  _SERVICE_1_RUN_RESOURCE_MEMORY: '2048Mi'
+  _SERVICE_1_RUN_RESOURCE_CPU: '2'
+  _SERVICE_1_RUN_RESOURCE_MAX_INSTANCES: '5'
+  _GC_REGION_1: 'europe-west4'
+  _GC_ARTIFACT_REGISTRY_REPO_1: 'hexagonal-adk-ai-agent'
+  _GOOGLE_GENAI_USE_VERTEXAI: 'TRUE'
+  _ADK_ARTIFACT_STORAGE_BUCKET: 'rbal-assisted-csew4adkassb1'
+  _ADK_MODEL_1_NAME: 'gemini-2.5-flash'
+  _ADK_AGENT_1_NAME: 'marketing_image_generating_agent'
+  _ADK_AGENT_1_DESCRIPTION: "Agent to generate images for the marketing department within a supermarket retailer."
+  _ADK_AGENT_1_INSTRUCTION: "Create a prompt based on what the user asks for and then pass the prompt to the generate_image tool.  Pass the response from the tool back to the user to conclude each interaction."
+  _GOOGLE_CLOUD_GENAI_IMAGE_MODEL_1_NAME: 'imagen-4.0-fast-generate-001'
+  _GOOGLE_CLOUD_STORAGE_BUCKET: 'rbal-assisted-csew4sb2'
+
+images:
+  - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_NAME_1}:${BUILD_ID}'
