@@ -35,7 +35,7 @@ class MarketingImageGoogleCloudStorageObjectStorageAdapter(MarketingImageObjectS
 
         This function uploads an image file and sets two types of metadata:
         1.  **Fixed-Key Metadata**: Standard GCS object properties like caching
-            behavior, content language, etc.
+            behaviour, content language, etc.
         2.  **Custom Metadata**: User-defined key-value pairs.
 
         Args:
