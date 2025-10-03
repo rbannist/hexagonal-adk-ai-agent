@@ -7,7 +7,11 @@ class Config:
         port=None,
         host=None,
         app_url=None,
+        service_name=None,
+        service_description=None,
         google_cloud_project=None,
+        google_cloud_location=None,
+        google_cloud_use_vertex_ai_or_ai_studio=None,
         ai_adk_model_1_name=None,
         ai_adk_agent_1_artifact_storage_bucket_name=None,
         ai_adk_agent_1_name=None,
@@ -31,9 +35,23 @@ class Config:
             app_url, "APP_URL", f"http://{self.host}:{self.port}"
         )
 
+        self.service_name = _get_config(
+            service_name, "SERVICE_1_NAME", "marketing-creative-agent"
+        )
+        self.service_description = _get_config(
+            service_description, "SERVICE_1_DESCRIPTION", "A marketing creative AI agent that helps users generate images and then manage the business lifecycle of them."
+        )
+
         self.google_cloud_project = _get_config(
             google_cloud_project, "GOOGLE_CLOUD_PROJECT", "rbal-assisted-prj1"
         )
+        self.google_cloud_location = _get_config(
+            google_cloud_location, "GOOGLE_CLOUD_LOCATION", "europe-west4"
+        )
+        self.google_cloud_use_vertex_ai_or_ai_studio = _get_config(
+            google_cloud_use_vertex_ai_or_ai_studio, "GOOGLE_GENAI_USE_VERTEXAI", "TRUE"
+        )
+
         self.ai_adk_model_1_name = _get_config(
             ai_adk_model_1_name, "ADK_MODEL_1_NAME", "gemini-2.5-flash"
         )
@@ -43,7 +61,7 @@ class Config:
             "rbal-assisted-csew4sb2",
         )
         self.ai_adk_agent_1_name = _get_config(
-            ai_adk_agent_1_name, "ADK_AGENT_1_NAME", "marketing_image_generating_agent"
+            ai_adk_agent_1_name, "ADK_AGENT_1_NAME", "marketing_creative_image_lifecycle_agent"
         )
         self.ai_adk_agent_1_description = _get_config(
             ai_adk_agent_1_description,
@@ -56,7 +74,7 @@ class Config:
             "Firstly, determine whether the user wishes to generate, accept, reject, remove, or change the metadata of an image.  In the absence of a clear intention, assume the user wants to generate an image - i.e. unless they request to accept, reject, remove, or change metadata, assume they want to generate an image.  The user will signal a desire to change image metadata by asking to change metadata or specific metadata keys.  The metadata keys they are able to change are description and keywords.  keywords should be captured as a comma-separated list.  If the user wants to generate an image, create a prompt based on what the user asks for as verbatim as possible and then pass the prompt to the generate_image tool.  After the tool responds, pass the response back to the user to conclude the interaction.  You should always include the image_storage_url value in the response.  If the user specifically asks to accept, reject, remove, or change the metadata of an image, use the appropriate tool to complete that request.  Pass back the tool's response to the user once it responds.",
         )
         self.ai_image_model_1_location = _get_config(
-            ai_image_model_1_location, "GOOGLE_CLOUD_LOCATION", "europe-west4"
+            ai_image_model_1_location, self.google_cloud_location, "europe-west4"
         )
         self.ai_image_model_1_name = _get_config(
             ai_image_model_1_name,

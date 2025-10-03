@@ -126,7 +126,7 @@ gcloud auth application default-login
 followed by
 
 ```bash
-uv run python __main__.py
+python __main__.py
 ```
 
 The server will be running at `http://0.0.0.0:8080` and can be tested with [A2AInspector](https://github.com/a2aproject/a2a-inspector).
