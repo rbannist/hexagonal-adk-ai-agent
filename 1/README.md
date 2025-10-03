@@ -37,7 +37,7 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 - **Agent Executor (`agent_executor.py`)**: Acts as a bridge between the A2A server and the Google ADK agent.  The `ADKAgentExecutor` handles incoming requests, invokes the ADK runner, and manages the task lifecycle.
 - **Web Framework (`__main__.py`)**: Sets-up and runs a Starlette web application using the `a2a-sdk`.  It defines the agent's public-facing `AgentCard` (its capabilities, skills, and endpoints) and routes incoming HTTP requests to the `ADKAgentExecutor`.
 
-## Sequence Diagram
+## Service Sequence
 
 ```mermaid
 sequenceDiagram
@@ -60,28 +60,42 @@ sequenceDiagram
 
 The application is configured using environment variables.  Create a `.env` file (see `.env.example`) and populate it.
 
+### Configuration
+
+The application is configured using environment variables.  Create a `.env` file (see `.env.example`) and populate it .
+
 ### Installation
 
-1.  Clone the repository.
-2.  Install the dependencies using `uv`:
+1.  **Navigate to this agent's directory**
+
+2.  **Create and use a virtual environment:**
+
+    ```bash
+    uv venv
+    source .venv/bin/activate
+    ```
+
+2.  **Install the dependencies using `uv`:**
 
     ```bash
     uv pip install -r requirements.txt
     ```
 
-### Running the Application
 
-Start the server from the root directory:
+### Running the Application Locally
 
-```bash
-gcloud auth application default-login
-```
+1.  **Authenticate with gcloud:**
 
-followed by
+    ```bash
+    gcloud auth application-default login
+    gcloud auth application-default login
+    ```
 
-```bash
-python __main__.py
-```
+2.  **Start the server from the root directory:**
+
+    ```bash
+    uv run python __main__.py
+    ```
 
 The server will be running at `http://0.0.0.0:8080` and can be tested with [A2AInspector](https://github.com/a2aproject/a2a-inspector).
 
@@ -95,23 +109,23 @@ You can also build and run the application using Docker.
     docker build -t marketing-creative-agent .
     ```
 
-2.  **Run the container:**
-
-    First, ensure you have authenticated with gcloud to generate the necessary credentials file:
+2.  **Ensure you have authenticated with gcloud to generate the necessary credentials file:**
 
     ```bash
     gcloud auth application-default login
     ```
 
-    Then, run the container.  The following command reads the content of your gcloud credentials file and passes it directly to the `GOOGLE_APPLICATION_CREDENTIALS` environment variable inside the container.  It also passes your `.env` file for application configuration.
+3.  **Run the container:**
 
-```bash
-docker run --rm -p 8080:8080 \
-  -v "$HOME/.config/gcloud/application_default_credentials.json:/app/gcp-credentials.json:ro" \
-  --env GOOGLE_APPLICATION_CREDENTIALS="/app/gcp-credentials.json" \
-  --env-file .env \
-  marketing-creative-agent
-```
+    ```bash
+    docker run --rm -p 8080:8080 \
+    -v "$HOME/.config/gcloud/application_default_credentials.json:/app/gcp-credentials.json:ro" \
+    --env GOOGLE_APPLICATION_CREDENTIALS="/app/gcp-credentials.json" \
+    --env-file .env \
+    marketing-creative-agent
+    ```
+
+The command above reads the content of your gcloud credentials file and passes it directly to the `GOOGLE_APPLICATION_CREDENTIALS` environment variable inside the container.  It also passes your `.env` file for application configuration.
 
 ## Project Structure
 
