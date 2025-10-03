@@ -7,6 +7,7 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 ## Table of Contents
 
   - [Features](https://www.google.com/search?q=%23features)
+  - [What's Been Introduced?](#whats-been-introduced)
   - [Architecture](https://www.google.com/search?q=%23architecture)
   - [Getting Started](https://www.google.com/search?q=%23getting-started)
       - [Prerequisites](https://www.google.com/search?q=%23prerequisites)
@@ -29,6 +30,33 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
   - **Application Layer**: Contains the core business logic of the agent service, including services for handling commands and domain events.
   - **Infrastructure Layer**: Provides concrete implementations of the ports defined in the application layer, allowing for easy integration with external services like Google Cloud Storage and Vertex AI.
   - **Integration Event Bus**: An integration event bus is implemented to allow for communication between different parts of the system and with external systems.
+
+-----
+
+## What's Been Introduced?
+This iteration of the Marketing Creative Agent introduces a full Hexagonal Architecture (also known as Ports and Adapters), evolving the initial proof-of-concept into a robust, enterprise-ready application. This architectural shift decouples the core business logic from external concerns, resulting in a more maintainable, testable, and adaptable system.
+
+Here are the key concepts that have been introduced:
+* **Application Layer:** A new application layer has been added to orchestrate the domain logic.  This layer contains:
+    - Application Services: These services coordinate the application's use cases and delegate tasks to the domain layer.
+    - Commands and Command Handlers: We've implemented the Command Bus pattern to decouple the sender of a request from its receiver.  Commands represent the intention to change the state of the system, and command handlers process these commands.
+    - DomainPorts (Interfaces): The application layer defines a set of ports (interfaces) that dictate how external systems can interact with the application.
+
+* **Infrastructure Layer:** The new infrastructure layer contains the concrete implementations of the ports defined in the application layer.  These are the "adapters" that connect our application to the outside world.  This includes adapters for:
+    - Generative AI Models: Interacting with Google's Vertex AI for image generation.
+    - Databases: Persisting and retrieving data from Google Cloud Firestore.
+    - Messaging Systems: Publishing and subscribing to events.
+    - Object Storage: Storing and retrieving generated images from Google Cloud Storage.
+
+* **Ports and Adapters:** We've formalised the concept of "ports" and "adapters".  This is the cornerstone of the Hexagonal Architecture and provides several key benefits:
+    - Loose Coupling: The core application is no longer directly dependent on specific technologies or frameworks.
+    - Improved Testability: We can easily swap out real infrastructure components with mock implementations for testing purposes.
+    - Enhanced Maintainability: Changes to external systems (like a database or a third-party API) only require a new adapter, leaving the core business logic untouched.
+    - Technology Agnosticism: We can evolve our technology stack without impacting the core functionality of the application.
+
+* **Dependency Injection, Dependency Inversion, and Configuration:** We've implemented the Dependency Inversion Principle, ensuring that high-level application logic does not depend on low-level infrastructure details.  Instead, both depend on abstractions (ports).  This is achieved through Dependency Injection, where concrete implementations (adapters) are provided to the application at runtime.  This approach makes our system highly modular and flexible.  For instance, the agent includes adapters for both Google's Imagen and Gemini Flash models.  The choice of which model to use for image generation is controlled entirely through a configuration setting, allowing you to switch between them with no changes to the core code.
+
+By implementing a full Hexagonal Architecture, we've transformed the agent from a simple tool-using agent into a production-ready system with a clear separation of concerns.  This architecture provides the foundation for building a system that is not only powerful and intelligent but also deterministic, auditable, and reliable—all of which are essential for real-world business applications.
 
 -----
 
