@@ -1,0 +1,95 @@
+meta {
+  title "Marketing Creative Agent on Google Cloud"
+}
+
+elements {
+  card laptop_and_phone as users {
+  	name "Users"
+  }
+  gcp {
+    group other_agents {
+      name "Other Agents"
+      card run as agent_service_another_1 {
+        name "Agent Service 1"
+      }
+      card vertex_ai as agent_service_another_2 {
+        name "Agent Service 2"
+      }
+    }
+    group marketing_image_agent {
+      name "Marketing Agents"
+      card run as agent_service {
+        name "Marketing Creative Service"
+      }
+    }
+    group prompts {
+      name "Agent Prompts"
+      card secret_manager as description_secret {
+        name "Description Secret"
+      }
+      card secret_manager as instruction_secret {
+        name "Instruction Secret"
+      }
+    }
+    group generative_ai {
+      name "Generative AI"
+      background_color "#D1FFBD"
+      card vertex_ai as imagen {
+        name "Imagen"
+      }
+      card vertex_ai as gemini_flash_image {
+        name "Gemini Flash Image"
+      }
+    }
+    group object_storage {
+      name "Object Storage"
+      card storage as adk_artifact_bucket {
+        name "ADK Artifacts"
+      }
+      card storage as marketing_images_bucket {
+        name "Marketing Image Objects"
+      }
+    }
+    group data_storage {
+      name "Data Storage"
+      card cloud_firestore as aggregate_repository {
+        name "Aggregate Repository"
+      }
+      card cloud_firestore as domain_event_store {
+        name "Domain Event Store"
+      }
+    }
+    group messaging {
+      name "Messaging"
+      background_color "#D1FFBD"
+      card pubsub as integration_event_bus {
+        name "Integration Event Bus"
+      }
+    }
+    group more_agents_and_services {
+      name "Other Agents and Services"
+      card run as agent_service_another_3 {
+        name "Agent Service 3"
+      }
+      card run as microservice_1 {
+        name "Microservice 1"
+      }
+    }
+  }
+}
+
+paths {
+  users -up-> agent_service
+  other_agents ..> agent_service
+  agent_service --> description_secret
+  agent_service --> instruction_secret
+  agent_service -up-> imagen
+  imagen (-->) gemini_flash_image
+  agent_service .up.> gemini_flash_image
+  agent_service -down-> marketing_images_bucket
+  agent_service .down.> adk_artifact_bucket
+  agent_service --> aggregate_repository
+  agent_service --> domain_event_store
+  agent_service --> integration_event_bus
+  integration_event_bus ..> more_agents_and_services
+}
