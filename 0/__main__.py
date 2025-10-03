@@ -33,7 +33,7 @@ async def main():
 
     agent_card = AgentCard(
         name=config.ai_adk_agent_1_name,
-        description=config.service_description,
+        description=config.service_1_description,
         version="1.0.0",
         url=config.app_url,
         default_input_modes=["text", "text/plain"],

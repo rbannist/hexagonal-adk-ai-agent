@@ -14,7 +14,7 @@ steps:
     args:
       - 'build'
       - '-t'
-      - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_NAME_1}:${BUILD_ID}'
+      - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_1_NAME}:${BUILD_ID}'
       - '.'
     id: 'Build'
 
@@ -22,7 +22,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_NAME_1}:${BUILD_ID}'
+      - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_1_NAME}:${BUILD_ID}'
       # - '--all-tags'
     id: 'Push'
 
@@ -36,7 +36,7 @@ steps:
       - '--platform'
       - 'managed'
       - '--image'
-      - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_NAME_1}:${BUILD_ID}'
+      - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_1_NAME}:${BUILD_ID}'
       - '--project'
       - '${_GC_PROJECT_ID_1}'
       - '--region'
@@ -58,6 +58,8 @@ steps:
         GOOGLE_CLOUD_PROJECT=${_GC_PROJECT_ID_1},
         GOOGLE_CLOUD_LOCATION=${_GC_REGION_1},
         GOOGLE_GENAI_USE_VERTEXAI=${_GOOGLE_GENAI_USE_VERTEXAI},
+        SERVICE_1_NAME=${_SERVICE_1_NAME},
+        SERVICE_1_DESCRIPTION=${_SERVICE_1_DESCRIPTION},
         ADK_ARTIFACT_STORAGE_BUCKET=${_ADK_ARTIFACT_STORAGE_BUCKET},
         ADK_MODEL_1_NAME=${_ADK_MODEL_1_NAME},
         ADK_AGENT_1_NAME=${_ADK_AGENT_1_NAME},
@@ -68,7 +70,7 @@ steps:
 
 substitutions:
   _GC_PROJECT_ID_1: 'rbal-assisted-prj1'
-  _SERVICE_NAME_1: 'marketing-creative-agent'
+  _SERVICE_1_NAME: 'marketing-creative-agent'
   _SERVICE_1_DESCRIPTION: 'A marketing creative AI agent that helps users generate images and then manage the business lifecycle of them'
   _SERVICE_1_ACCOUNT: 'rbal-assisted-sacrcma1@rbal-assisted-prj1.iam.gserviceaccount.com'
   _SERVICE_1_RUN_RESOURCE_NAME: 'rbal-assisted-crew4mca1'
@@ -88,7 +90,7 @@ substitutions:
   _GOOGLE_CLOUD_STORAGE_BUCKET: 'rbal-assisted-csew4sb2'
 
 images:
-  - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_NAME_1}:${BUILD_ID}'
+  - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_1_NAME}:${BUILD_ID}'
 
 availableSecrets:
   secretManager:

@@ -7,8 +7,8 @@ class Config:
         port=None,
         host=None,
         app_url=None,
-        service_name=None,
-        service_description=None,
+        service_1_name=None,
+        service_1_description=None,
         google_cloud_project=None,
         google_cloud_location=None,
         google_cloud_use_vertex_ai_or_ai_studio=None,
@@ -35,11 +35,11 @@ class Config:
             app_url, "APP_URL", f"http://{self.host}:{self.port}"
         )
 
-        self.service_name = _get_config(
-            service_name, "SERVICE_1_NAME", "marketing-creative-agent"
+        self.service_1_name = _get_config(
+            service_1_name, "SERVICE_1_NAME", "marketing-creative-agent"
         )
-        self.service_description = _get_config(
-            service_description, "SERVICE_1_DESCRIPTION", "A marketing creative AI agent that helps users generate images and then manage the business lifecycle of them."
+        self.service_1_description = _get_config(
+            service_1_description, "SERVICE_1_DESCRIPTION", "A marketing creative AI agent that helps users generate images and then manage the business lifecycle of them."
         )
 
         self.google_cloud_project = _get_config(
