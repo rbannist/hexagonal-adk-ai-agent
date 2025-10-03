@@ -79,7 +79,7 @@ class Config:
         self.ai_image_model_1_name = _get_config(
             ai_image_model_1_name,
             "GOOGLE_CLOUD_GENAI_IMAGE_MODEL_1_NAME",
-            "imagen-3.0-generate-fast-001",
+            "imagen-4.0-fast-generate-001",
         )
         self.storage_bucket_name = _get_config(
             storage_bucket_name, "GOOGLE_CLOUD_STORAGE_BUCKET", "rbal-assisted-csew4sb2"
