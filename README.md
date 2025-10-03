@@ -40,7 +40,7 @@ This repository is structured to guide you through the process of building a sop
 
 ## Getting Started
 
-### Prerequisites
+### Main Prerequisites
 
 * Python 3.12
 * uv
@@ -68,13 +68,17 @@ This repository is structured to guide you through the process of building a sop
     ```
     Now, edit the `.env` file and add your configuration details, such as API keys.
 
-### Running the Agent
-
-To run an agent, simply execute `uv run python __main__.py`.
+3.  **Follow the instructions in the given agent's directory/README.md:**
+    - Step 0 Agent
+        - [Readme](https://github.com/rbannist/hexagonal-adk-ai-agent/blob/main/0/README.md)
+    - Step 1 Agent
+        - [Readme](https://github.com/rbannist/hexagonal-adk-ai-agent/blob/main/1/README.md)
+    - Step 2 Agent
+        - [Readme](https://github.com/rbannist/hexagonal-adk-ai-agent/blob/main/2/README.md)
 
 -----------------------------------------------------------------------------------------------------------
 
-## Roadmap
+## Roadmap / Future Intentions
 
 | Step | What's Being Introduced | Why It's Valuable |
 | :--- | :--- | :--- |

@@ -108,7 +108,7 @@ class MarketingImage(AggregateRoot):
                 id=str(self.id),
                 url=self.url.url,
                 checksum=self.checksum.checksum,
-                created_at=self.created_at.to_string(),
+                created_at=self.created_at.to_string() if self.created_at else None,
                 last_modified_at=self.last_modified_at.to_string(),
             )
         )
@@ -124,7 +124,7 @@ class MarketingImage(AggregateRoot):
                 id=str(self.id),
                 url=self.url.url,
                 checksum=self.checksum.checksum,
-                created_at=self.created_at.to_string(),
+                created_at=self.created_at.to_string() if self.created_at else None,
                 last_modified_at=self.last_modified_at.to_string(),
             )
         )
@@ -147,7 +147,7 @@ class MarketingImage(AggregateRoot):
                 size=self.size.size,
                 mime_type=self.mime_type.mime_type,
                 checksum=self.checksum.checksum,
-                created_at=self.created_at.to_string(),
+                created_at=self.created_at.to_string() if self.created_at else None,
                 last_modified_at=self.last_modified_at.to_string(),
             )
         )
@@ -162,19 +162,31 @@ class MarketingImage(AggregateRoot):
             MarketingImageRemovedEvent(
                 id=str(self.id),
                 url=self.url.url,
+                size=self.size.size,
                 checksum=self.checksum.checksum,
-                created_at=self.created_at.to_string(),
+                created_at=self.created_at.to_string() if self.created_at else None,
                 last_modified_at=self.last_modified_at.to_string(),
             )
         )
 
     def change_metadata(
         self,
-        description: ImageDescription,
-        keywords: ImageKeywords,
+        description: Optional[ImageDescription] = None,
+        keywords: Optional[ImageKeywords] = None,
+        dimensions: Optional[ImageDimensions] = None,
+        size: Optional[ImageSize] = None,
+        url: Optional[ImageUrl] = None,
     ):
-        self.description = description
-        self.keywords = keywords
+        if description is not None:
+            self.description = description
+        if keywords is not None:
+            self.keywords = keywords
+        if dimensions is not None:
+            self.dimensions = dimensions
+        if size is not None:
+            self.size = size
+        if url is not None:
+            self.url = url
         self.last_modified_at = LastModifiedAt.now()
         self.add_domain_event(
             MarketingImageMetadataChangedEvent(
@@ -182,7 +194,9 @@ class MarketingImage(AggregateRoot):
                 url=self.url.url,
                 description=self.description.description,
                 keywords=self.keywords.keywords,
-                created_at=self.created_at.to_string(),
+                dimensions=self.dimensions.to_dict(),
+                size=self.size.size,
+                created_at=self.created_at.to_string() if self.created_at else None,
                 last_modified_at=self.last_modified_at.to_string(),
             )
         )

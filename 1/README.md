@@ -19,9 +19,9 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 
 ## Features
 
-- **Image Generation**: Generates marketing images from text descriptions - e.g. "A shopping cart full of fresh vegetables".
+- **Image Generation and Business Lifecyle Management**: The agent has a capability to generate marketing images from text descriptions - e.g. "A shopping cart full of fresh vegetables".  Has skills related to use-of approvals, lifecycle management,and metadata management.
 - **A2A Compliant**: Implements the A2A (Agent-to-Agent) protocol for standardised agent communication.
-- **Tool-Using Agent**: Utilises the Google ADK to create an agent that uses a custom tool for image generation.
+- **Tool-Using Agent**: Utilises the Google ADK to create an agent that uses a custom tools for image generation, approval marking, and lifecycle management.
 - **Domain-Driven Design**: Models the `MarketingImage` as a domain aggregate, capturing its state and lifecycle.
 - **Cloud Integrated**: Stores generated images in a Google Cloud Storage bucket and persists the `MarketingImage` aggregate state and domain events in Google Cloud Firestore.
 - **Containerised**: Includes a `Dockerfile` for easy deployment and scaling.
@@ -42,7 +42,59 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 ```mermaid
 sequenceDiagram
     participant User
+    participant A2AStarletteApplication
+    participant DefaultRequestHandler
+    participant ADKAgentExecutor
+    participant Runner
+    participant marketing_image_agent
+    participant GoogleCloudStorage
+    participant GoogleCloudFirestore
+    participant VertexAI
 
+    User->>A2AStarletteApplication: HTTP Request
+    A2AStarletteApplication->>DefaultRequestHandler: handle_request()
+    DefaultRequestHandler->>ADKAgentExecutor: execute()
+    ADKAgentExecutor->>Runner: run_async()
+    Runner->>marketing_image_agent: call tool
+    alt generate_image_tool
+        marketing_image_agent->>VertexAI: generate_images()
+        VertexAI-->>marketing_image_agent: image_bytes
+        marketing_image_agent->>GoogleCloudStorage: save_marketing_image_object()
+        GoogleCloudStorage-->>marketing_image_agent: public_url, checksum
+        marketing_image_agent->>GoogleCloudFirestore: save_marketing_image()
+        GoogleCloudFirestore-->>marketing_image_agent: success/failure
+        marketing_image_agent-->>Runner: image details
+    else accept_image_tool
+        marketing_image_agent->>GoogleCloudFirestore: retrieve_by_id()
+        GoogleCloudFirestore-->>marketing_image_agent: marketing_image
+        marketing_image_agent->>GoogleCloudFirestore: save_marketing_image()
+        GoogleCloudFirestore-->>marketing_image_agent: success/failure
+        marketing_image_agent-->>Runner: status
+    else reject_image_tool
+        marketing_image_agent->>GoogleCloudFirestore: retrieve_by_id()
+        GoogleCloudFirestore-->>marketing_image_agent: marketing_image
+        marketing_image_agent->>GoogleCloudFirestore: save_marketing_image()
+        GoogleCloudFirestore-->>marketing_image_agent: success/failure
+        marketing_image_agent-->>Runner: status
+    else remove_image_tool
+        marketing_image_agent->>GoogleCloudFirestore: retrieve_by_id()
+        GoogleCloudFirestore-->>marketing_image_agent: marketing_image
+        marketing_image_agent->>GoogleCloudStorage: delete_marketing_image_object()
+        GoogleCloudStorage-->>marketing_image_agent: success/failure
+        marketing_image_agent->>GoogleCloudFirestore: remove_marketing_image()
+        GoogleCloudFirestore-->>marketing_image_agent: success/failure
+        marketing_image_agent-->>Runner: status
+    else change_image_metadata_tool
+        marketing_image_agent->>GoogleCloudFirestore: retrieve_by_id()
+        GoogleCloudFirestore-->>marketing_image_agent: marketing_image
+        marketing_image_agent->>GoogleCloudFirestore: save_marketing_image()
+        GoogleCloudFirestore-->>marketing_image_agent: success/failure
+        marketing_image_agent-->>Runner: status
+    end
+    Runner-->>ADKAgentExecutor: response
+    ADKAgentExecutor->>DefaultRequestHandler: response
+    DefaultRequestHandler->>A2AStarletteApplication: response
+    A2AStarletteApplication-->>User: HTTP Response
 ```
 
 ## Getting Started
@@ -55,6 +107,7 @@ sequenceDiagram
 - A Google Cloud Storage bucket.
 - A Google Cloud Firestore database.
 - Authenticated gcloud CLI or a service account with permissions for Vertex AI and Cloud Storage.
+- If deploying to Cloud Run using the cloudbuild.yaml.example file as a template, two Secret Manager secrets (agent description and instructions).
 
 ### Configuration
 
@@ -87,7 +140,6 @@ The application is configured using environment variables.  Create a `.env` file
 1.  **Authenticate with gcloud:**
 
     ```bash
-    gcloud auth application-default login
     gcloud auth application-default login
     ```
 

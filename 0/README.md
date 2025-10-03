@@ -18,15 +18,15 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 
 ## Features
 
-- **Image Generation**: Generates marketing images from text descriptions - e.g. "A shopping cart full of fresh vegetables".
+- **Image Generation and Business Lifecyle Management**: The agent has a capability to generate marketing images from text descriptions - e.g. "A shopping cart full of fresh vegetables".  Has skills related to use-of approvals, lifecycle management,and metadata management.
 - **A2A Compliant**: Implements the A2A (Agent-to-Agent) protocol for standardised agent communication.
-- **Tool-Using Agent**: Utilises the Google ADK to create an agent that uses a custom tool for image generation.
+- **Tool-Using Agent**: Utilises the Google ADK to create an agent that uses a custom tools for image generation, approval marking, and lifecycle management.
 - **Cloud Integrated**: Stores generated images in a Google Cloud Storage bucket.
 - **Containerised**: Includes a `Dockerfile` for easy deployment and scaling.
 
 ## Architecture
 
-- **Core Logic (`marketing_image_agent`)**: Contains the agent definition using Google ADK.  The agent is instructed to use a tool (`generate_image_tool`) which calls the `imagen` model on Vertex AI to generate an image and then stores it in Google Cloud Storage.
+- **Core Logic (`marketing_image_agent`)**: Contains the agent definition using Google ADK.  For image generation, the agent is instructed to use a tool (`generate_image_tool`) which calls the `imagen` model on Vertex AI to generate an image and then stores it in Google Cloud Storage.
 - **Agent Executor (`agent_executor.py`)**: Acts as a bridge between the A2A server and the Google ADK agent.  The `ADKAgentExecutor` handles incoming requests, invokes the ADK runner, and manages the task lifecycle.
 - **Web Framework (`__main__.py`)**: Sets-up and runs a Starlette web application using the `a2a-sdk`.  It defines the agent's public-facing `AgentCard` (its capabilities, skills, and endpoints) and routes incoming HTTP requests to the `ADKAgentExecutor`.
 
@@ -86,10 +86,11 @@ sequenceDiagram
 - Access to a Google Cloud Platform project.
 - A Google Cloud Storage bucket.
 - Authenticated gcloud CLI or a service account with permissions for Vertex AI and Cloud Storage.
+- If deploying to Cloud Run using the cloudbuild.yaml.example file as a template, two Secret Manager secrets (agent description and instructions).
 
 ### Configuration
 
-The application is configured using environment variables.  Create a `.env` file (see `.env.example`) and populate it .
+The application is configured using environment variables.  Create a `.env` file (see `.env.example`) and populate it.
 
 ### Installation
 
@@ -114,7 +115,6 @@ The application is configured using environment variables.  Create a `.env` file
 1.  **Authenticate with gcloud:**
 
     ```bash
-    gcloud auth application-default login
     gcloud auth application-default login
     ```
 

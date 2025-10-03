@@ -1,0 +1,59 @@
+service:
+  port: 8080
+  host: "0.0.0.0"
+  app_url: "http://localhost:8080"
+  name: marketing-creative-agent
+
+gcp:
+  project_id: "your-project-id"
+  location: "europe-west4" # Or another supported region WRT the products and models used
+  image_generation_model_family: "imagen" # imagen, gemini
+
+dispatcher:
+  command:
+    prefix: ai.dev.command.marketing-image
+    type: "in_memory" # in_memory, pubsub
+  domain_event:
+    prefix: ai.dev.domain-event.marketing-image
+    type: "in_memory"
+  integration_event:
+    prefix: ai.dev.integration-event.marketing-image
+
+repository:
+  firestore:
+    project_id: "your-project-id-if-different-for-this-service"
+    location: "europe-west4"
+    database: "claim-check-ew4-1"
+    marketing_images_collection: "marketing-image-aggregates"
+    domain_events_collection: "marketing-image-domain-events"
+
+object_storage:
+  gcs:
+    project_id: "your-project-id-if-different-for-this-service"
+    location: "europe-west4"
+    bucket: "your-project-id-csew4sb1"
+
+genai:
+  adk:
+    agent_1_artifact_storage_bucket_name: "your-project-id-csew4adkassb1"
+    agent_1_model_1_name: "gemini-2.5-flash"
+    agent_1_name: "marketing_image_generating_agent"
+    agent_1_description: "Agent to generate images for the marketing department within a supermarket retailer"
+    agent_1_instruction: "Create a prompt based on what the user asks for and then pass the prompt to the generate_image tool.  Pass the response from the tool back to the user to conclude each interaction."
+  vertex_ai:
+    image:
+      project_id: "your-project-id-if-different-for-this-service"
+      imagen_model_location: "europe-west4"
+      imagen_model_name: "imagen-4.0-fast-generate-001"
+      gemini_model_location: "global"
+      gemini_model_name: "gemini-2.5-flash-image-preview"
+    multimodal:
+      project_id: "your-project-id-if-different-for-this-service"
+      model_location: "europe-west4"
+      model_name: "gemini-2.5-pro"
+
+messaging:
+  eventarc_standard:
+    project_id: "your-project-id-if-different-for-this-service"
+    location: "global"
+    topic: "your-project-prefix-csew4psiemit1"

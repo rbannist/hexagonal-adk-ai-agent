@@ -20,9 +20,9 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 
 ## Features
 
-  - **Image Generation**: Generates marketing images from text descriptions - e.g. "A shopping cart full of fresh vegetables".
+  - **Image Generation and Business Lifecyle Management**: The agent has a capability to generate marketing images from text descriptions - e.g. "A shopping cart full of fresh vegetables".  Has skills related to use-of approvals, lifecycle management,and metadata management.
   - **A2A Compliant**: Implements the A2A (Agent-to-Agent) protocol for standardised agent communication.
-  - **Tool-Using Agent**: Utilises the Google ADK to create an agent that uses a custom tool for image generation.
+  - **Tool-Using Agent**: Utilises the Google ADK to create an agent that uses a custom tools for image generation, approval marking, and lifecycle management.
   - **Cloud Integrated**: Stores generated images in a Google Cloud Storage bucket.
   - **Containerised**: Includes a `Dockerfile` for easy deployment and scaling.
   - **Hexagonal Architecture**: The agent is now built using a Hexagonal (Ports and Adapters) Architecture, which decouples the core logic and deterministic interactions from the agent and any external services.
@@ -63,6 +63,66 @@ The agent uses an **Integration Event Bus** to publish and subscribe to integrat
 
 -----
 
+## Service Sequence
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant A2AStarletteApplication
+    participant DefaultRequestHandler
+    participant ADKAgentExecutor
+    participant Runner
+    participant marketing_image_agent
+    participant InMemoryCommandDispatcher
+    participant GenerateMarketingImageCommandHandler
+    participant MarketingImageGoogleCloudVertexAIImagenAdapter
+    participant MarketingImageGoogleCloudStorageObjectStorageAdapter
+    participant MarketingImageAggregateFirestoreRepository
+    participant Eventarc
+
+    User->>A2AStarletteApplication: HTTP Request
+    A2AStarletteApplication->>DefaultRequestHandler: handle_request()
+    DefaultRequestHandler->>ADKAgentExecutor: execute()
+    ADKAgentExecutor->>Runner: run_async()
+    Runner->>marketing_image_agent: call tool
+    alt generate_image_tool
+        marketing_image_agent->>InMemoryCommandDispatcher: dispatch(GenerateMarketingImageCommand)
+        InMemoryCommandDispatcher->>GenerateMarketingImageCommandHandler: handle(GenerateMarketingImageCommand)
+        GenerateMarketingImageCommandHandler->>MarketingImageGoogleCloudVertexAIImagenAdapter: generate_image()
+        MarketingImageGoogleCloudVertexAIImagenAdapter-->>GenerateMarketingImageCommandHandler: image_bytes
+        GenerateMarketingImageCommandHandler->>MarketingImageGoogleCloudStorageObjectStorageAdapter: save()
+        MarketingImageGoogleCloudStorageObjectStorageAdapter-->>GenerateMarketingImageCommandHandler: public_url, checksum
+        GenerateMarketingImageCommandHandler->>MarketingImageAggregateFirestoreRepository: save()
+        MarketingImageAggregateFirestoreRepository-->>GenerateMarketingImageCommandHandler: success/failure
+        GenerateMarketingImageCommandHandler->>Eventarc: publish(MarketingImageGeneratedThinIntegrationEvent)
+        Eventarc-->>GenerateMarketingImageCommandHandler: success/failure
+        GenerateMarketingImageCommandHandler-->>InMemoryCommandDispatcher: result
+        InMemoryCommandDispatcher-->>marketing_image_agent: result
+        marketing_image_agent-->>Runner: image details
+    else accept_image_tool
+        marketing_image_agent->>InMemoryCommandDispatcher: dispatch(AcceptMarketingImageCommand)
+        InMemoryCommandDispatcher-->>marketing_image_agent: result
+        marketing_image_agent-->>Runner: status
+    else reject_image_tool
+        marketing_image_agent->>InMemoryCommandDispatcher: dispatch(RejectMarketingImageCommand)
+        InMemoryCommandDispatcher-->>marketing_image_agent: result
+        marketing_image_agent-->>Runner: status
+    else remove_image_tool
+        marketing_image_agent->>InMemoryCommandDispatcher: dispatch(RemoveMarketingImageCommand)
+        InMemoryCommandDispatcher-->>marketing_image_agent: result
+        marketing_image_agent-->>Runner: status
+    else change_image_metadata_tool
+        marketing_image_agent->>InMemoryCommandDispatcher: dispatch(UpdateMarketingImageMetadataCommand)
+        InMemoryCommandDispatcher-->>marketing_image_agent: result
+        marketing_image_agent-->>Runner: status
+    end
+    Runner-->>ADKAgentExecutor: response
+    ADKAgentExecutor->>DefaultRequestHandler: response
+    DefaultRequestHandler->>A2AStarletteApplication: response
+    A2AStarletteApplication-->>User: HTTP Response
+```
+-----
+
 ## Getting Started
 
 ### Prerequisites
@@ -76,6 +136,7 @@ The agent uses an **Integration Event Bus** to publish and subscribe to integrat
   - Google Cloud Firestore: A Firestore database is required for the marketing image aggregate repository and domain event store (batch written in this example).
   - Google Cloud Vertex AI: You'll need to have the Vertex AI API enabled in your Google Cloud project to access the generative AI models.
   - Google Cloud Pub/Sub: You'll need to have the Pub/Sub API enabled in your Google Cloud project to use the integration event bus and a topic available to push integration events to (and a push or pull subscription to receive them).
+  - If deploying to Cloud Run using the cloudbuild.yaml.example file as a template, two Secret Manager secrets (agent description and instructions).
   - Authentication: You'll need an authenticated gcloud CLI or a service account with the appropriate permissions for Vertex AI, Cloud Storage, Firestore, Cloud Pub/Sub, Eventarc, etc.
 
 ### Configuration
@@ -84,31 +145,37 @@ The application is configured using environment variables.  Create a `.env` file
 
 ### Installation
 
-1.  Clone the repository.
+1.  **Navigate to this agent's directory**
 
-2.  Install the dependencies using `uv`:
+2.  **Create and use a virtual environment:**
+
+    ```bash
+    uv venv
+    source .venv/bin/activate
+    ```
+
+2.  **Install the dependencies using `uv`:**
 
     ```bash
     uv pip install -r requirements.txt
     ```
 
-### Running the Application
 
-Start the server from the root directory:
+### Running the Application Locally
 
-```bash
-gcloud auth application-default login
-```
+1.  **Authenticate with gcloud:**
 
-followed by
+    ```bash
+    gcloud auth application-default login
+    ```
 
-```bash
-uv run python __main__.py
-```
+2.  **Start the server from the root directory:**
+
+    ```bash
+    uv run python __main__.py
+    ```
 
 The server will be running at `http://0.0.0.0:8080` and can be tested with [A2AInspector](https://github.com/a2aproject/a2a-inspector).
-
------
 
 ## Running with Docker
 
@@ -120,25 +187,23 @@ You can also build and run the application using Docker.
     docker build -t marketing-creative-agent .
     ```
 
-2.  **Run the container:**
-
-    First, ensure you have authenticated with gcloud to genrate the necessary credentials file:
+2.  **Ensure you have authenticated with gcloud to generate the necessary credentials file:**
 
     ```bash
     gcloud auth application-default login
     ```
 
-    Then, run the container. The following command reads th content of your gcloud credentials file and passes it directly to the `GOOGLE_APPLICATION_CREDENTIALS` environment variable inside the container. It also passes your `.env` file for application configuration.
+3.  **Run the container:**
 
-<!-- end list -->
+    ```bash
+    docker run --rm -p 8080:8080 \
+    -v "$HOME/.config/gcloud/application_default_credentials.json:/app/gcp-credentials.json:ro" \
+    --env GOOGLE_APPLICATION_CREDENTIALS="/app/gcp-credentials.json" \
+    --env-file .env \
+    marketing-creative-agent
+    ```
 
-```bash
-docker run --rm -p 8080:8080 \
-  -v "$HOME/.config/gcloud/application_default_credentials.json:/app/gcp-credentials.json:ro" \
-  --env GOOGLE_APPLICATION_CREDENTIALS="/app/gcp-credentials.json" \
-  --env-file .env \
-  marketing-creative-agent
-```
+The command above reads the content of your gcloud credentials file and passes it directly to the `GOOGLE_APPLICATION_CREDENTIALS` environment variable inside the container.  It also passes your `.env` file for application configuration.
 
 -----
 
