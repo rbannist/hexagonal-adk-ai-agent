@@ -5,7 +5,7 @@ from abc import ABC
 from typing import Dict, Any
 
 
-service_name = os.getenv("SERVICE_NAME", "marketing-creative-agent")
+service_name = os.getenv("SERVICE_1_NAME", "marketing-creative-agent")
 
 def _to_dict_recursive(data: Any) -> Any:
     """

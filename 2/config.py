@@ -32,7 +32,7 @@ class Container(containers.DeclarativeContainer):
 
     # Override with environment variables if they exist.
     # This provides a mapping from environment variable names to the configuration keys.
-    config.service.name.from_env("SERVICE_NAME")
+    config.service.name.from_env("SERVICE_1_NAME")
     config.service.host.from_env("HOST")
     config.service.port.from_env("PORT")
     config.service.app_url.from_env("APP_URL")
