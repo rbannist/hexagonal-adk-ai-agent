@@ -37,6 +37,14 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 - **Agent Executor (`agent_executor.py`)**: Acts as a bridge between the A2A server and the Google ADK agent.  The `ADKAgentExecutor` handles incoming requests, invokes the ADK runner, and manages the task lifecycle.
 - **Web Framework (`__main__.py`)**: Sets-up and runs a Starlette web application using the `a2a-sdk`.  It defines the agent's public-facing `AgentCard` (its capabilities, skills, and endpoints) and routes incoming HTTP requests to the `ADKAgentExecutor`.
 
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant User
+
+```
+
 ## Getting Started
 
 ### Prerequisites
@@ -50,27 +58,7 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 
 ### Configuration
 
-The application is configured using environment variables.  Create a `.env` file (see `.env.example`) and populate it with the following (as a minimum):
-
-```env
-# GCP Configuration
-GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
-GOOGLE_CLOUD_LOCATION="europe-west4" # Or your preferred Google Cloud region
-
-# Storage & Repository Configuration
-GOOGLE_CLOUD_STORAGE_BUCKET="your-gcs-bucket-name"
-GOOGLE_CLOUD_FIRESTORE_REPOSITORY_DATABASE="(default)" # Or your Firestore DB name
-GOOGLE_CLOUD_FIRESTORE_REPOSITORY_COLLECTION_MARKETING_IMAGES="marketing-image-aggregates"
-GOOGLE_CLOUD_FIRESTORE_REPOSITORY_COLLECTION_MARKETING_IMAGE_EVENTS="marketing-image-domain-events"
-
-# Agent & Model Configuration (defaults are provided in the code)
-ADK_MODEL_1_NAME="gemini-1.5-flash"
-GOOGLE_CLOUD_GENAI_IMAGE_MODEL_1_NAME="imagen-3.0-generate-fast-001"
-
-# Application URL (optional)
-APP_URL="http://0.0.0.0:8080"
-PORT="8080"
-```
+The application is configured using environment variables.  Create a `.env` file (see `.env.example`) and populate it.
 
 ### Installation
 
@@ -92,7 +80,7 @@ gcloud auth application default-login
 followed by
 
 ```bash
-uv run python __main__.py
+python __main__.py
 ```
 
 The server will be running at `http://0.0.0.0:8080` and can be tested with [A2AInspector](https://github.com/a2aproject/a2a-inspector).
