@@ -3,8 +3,8 @@ import uuid
 import logging
 from PIL import Image as PILImage
 from google.adk.agents import Agent
-from google import genai
-from google.genai import types
+from google import genai as genai_images
+from google.genai import types  as genai_types
 from typing import Tuple, Optional
 from google.cloud import storage
 
@@ -124,23 +124,25 @@ def generate_image_tool(prompt: str) -> dict:
     genai_image_model_region = config.ai_image_model_1_location
     img_width, img_height = 0, 0
 
-    genai_images_client = genai.Client(
+    genai_images_client = genai_images.Client(
         vertexai=True,
         project=config.google_cloud_project,
         location=genai_image_model_region,
-        http_options=types.HttpOptions(api_version="v1"),
+        http_options=genai_types.HttpOptions(api_version="v1"),
     )
+
+    generation_parameters = {
+        "number_of_images": 1,
+        "image_size": "1K",
+        "aspect_ratio": "1:1",
+        "person_generation": "allow_adult",
+        "output_mime_type": mime_type,
+    }
 
     response = genai_images_client.models.generate_images(
         model=config.ai_image_model_1_name,
         prompt=prompt,
-        config=types.GenerateImagesConfig(
-            number_of_images=1,
-            image_size="1K",  # This implies the largest dimension will be 1024, and the other scaled by aspect_ratio
-            aspect_ratio="1:1",
-            person_generation="allow_adult",
-            output_mime_type=mime_type,
-        ),
+        config=genai_types.GenerateImagesConfig(**generation_parameters),
     )
 
     generated_image = response.generated_images[0]

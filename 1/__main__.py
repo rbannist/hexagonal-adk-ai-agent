@@ -32,8 +32,8 @@ async def main():
     port = int(config.port)
 
     agent_card = AgentCard(
-        name=marketing_image_agent.name,
-        description=marketing_image_agent.description,
+        name=config.ai_adk_agent_1_name,
+        description=config.service_1_description,
         version="1.0.0",
         url=config.app_url,
         default_input_modes=["text", "text/plain"],

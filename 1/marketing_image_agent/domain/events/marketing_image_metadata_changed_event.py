@@ -10,6 +10,8 @@ class MarketingImageMetadataChangedEvent(DomainEvent): # Primitives for decoupli
         url: str,
         description: str,
         keywords: dict,
+        dimensions: dict,
+        size: str,
         created_at: str,
         last_modified_at: str,
         event_id: str = None,
@@ -23,6 +25,8 @@ class MarketingImageMetadataChangedEvent(DomainEvent): # Primitives for decoupli
             "url": url,
             "description": description,
             "keywords": keywords,
+            "dimensions": dimensions,
+            "size": size,
             "created_at": created_at,
             "last_modified_at": last_modified_at,
         }

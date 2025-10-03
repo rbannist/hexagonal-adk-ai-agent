@@ -1,9 +1,9 @@
 import io
 import uuid
 import logging
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Dict
 from datetime import datetime
-from PIL import Image as PILImage
+from PIL import Image as PILImage 
 from google.adk.agents import Agent
 from google import genai as genai_images
 from google.genai import types as genai_types
@@ -14,8 +14,14 @@ from config import Config
 from marketing_image_agent.shared.utils import DataManipulationUtils
 
 from marketing_image_agent.domain.entities.marketing_image_aggregate import MarketingImage
+from marketing_image_agent.domain.events.base_domain_event import DomainEvent
 from marketing_image_agent.domain.factories.marketing_image_aggregate_factory import MarketingImageAggregateFactory
 from marketing_image_agent.domain.factories.marketing_image_domain_events_factory import MarketingImageDomainEventsFactory
+from marketing_image_agent.domain.value_objects.image_description import ImageDescription
+from marketing_image_agent.domain.value_objects.image_dimensions import ImageDimensions
+from marketing_image_agent.domain.value_objects.image_keywords import ImageKeywords
+from marketing_image_agent.domain.value_objects.image_size import ImageSize
+from marketing_image_agent.domain.value_objects.image_url import ImageUrl
 
 
 config = Config()
@@ -47,7 +53,11 @@ class GoogleCloudStorage:
         self.storage_bucket = self.storage_client.bucket(self.storage_bucket_name)
 
     def save_marketing_image_object(
-        self, image_data: bytes, file_name: str, content_type: str
+        self,
+        image_data: bytes,
+        file_name: str,
+        content_type: str,
+        metadata: dict = None,
     ) -> Tuple[Optional[str], Optional[str]]:
         """
         Saves image data to Google Cloud Storage.
@@ -56,6 +66,7 @@ class GoogleCloudStorage:
             image_data: The byte data of the image.
             file_name: The desired file name for the image in GCS.
             content_type: The content type of the image - e.g. 'image/png'.
+            metadata: A dictionary of custom metadata to set on the object.
 
         Returns:
             A tuple containing the public URL and the base64-encoded MD5 checksum
@@ -64,6 +75,8 @@ class GoogleCloudStorage:
         blob = self.storage_bucket.blob(file_name)
         public_url = None
         checksum = None
+        if metadata:
+            blob.metadata = metadata       
         try:
             blob.upload_from_string(image_data, content_type=content_type)
 
@@ -74,24 +87,44 @@ class GoogleCloudStorage:
         except Exception as e:
             logger.error(f"Error uploading image to GCS: {e}")
             return public_url, checksum
-    
-    def remove_marketing_image_object(self, file_name: str) -> str:
+
+    def update_marketing_image_metadata(
+        self, file_name: str, metadata: dict
+    ) -> bool:
         """
-        Removes an image from Google Cloud Storage.
+        Updates custom metadata for an existing object in Google Cloud Storage.
 
         Args:
-            file_name: The name of the file to remove.
+            file_name: The name of the file in GCS.
+            metadata: A dictionary containing the metadata to update.
 
         Returns:
-            A string indicating the result of the operation.
+            True if the update was successful, False otherwise.
         """
         blob = self.storage_bucket.blob(file_name)
         try:
-            blob.delete()
-            return f"File {file_name} removed successfully."
+            blob.patch()  # Fetch the latest metadata
+            current_metadata = blob.metadata or {}
+            current_metadata.update(metadata)
+            blob.metadata = current_metadata
+            blob.patch()
+            logger.info(f"Updated metadata for {file_name}: {metadata}")
+            return True
         except Exception as e:
-            logger.error(f"Error removing image from GCS: {e}")
-            return f"Error removing file {file_name}: {e}"
+            logger.error(f"Error updating metadata for {file_name}: {e}")
+            return False
+
+    def delete_marketing_image_object(self, file_name: str):
+        """Deletes an object from Google Cloud Storage."""
+        try:
+            blob = self.storage_bucket.blob(file_name)
+            blob.delete()
+            logger.info(f"Deleted {file_name} from bucket {self.storage_bucket_name}.")
+            return True
+        except Exception as e:
+            logger.error(f"Error deleting {file_name} from bucket {self.storage_bucket_name}: {e}")
+            return False
+
 
 storage_client = GoogleCloudStorage(
     config.google_cloud_project, config.storage_bucket_name
@@ -138,7 +171,7 @@ class GoogleCloudFirestoreRepository:
                     pass  # If parsing fails, assume it's not a timestamp and leave it as is
         return processed_data
 
-    def save(self, marketing_image: MarketingImage) -> None:
+    def save_marketing_image(self, marketing_image: MarketingImage) -> bool:
         """
         Saves a marketing image aggregate and its domain events to Firestore.
         This method uses a batch write to ensure atomicity and handles both
@@ -189,10 +222,36 @@ class GoogleCloudFirestoreRepository:
         # 4. Clear events from the aggregate instance after they have been persisted
         marketing_image.clear_domain_events()
 
-        print(f"Saved {aggregate_type} {aggregate_doc_id} and its {len(event_id_list)} domain events (IDs: {', '.join(event_id_list)})")
+        logger.info(f"Saved {aggregate_type} {aggregate_doc_id} and its {len(event_id_list)} domain events (IDs: {', '.join(event_id_list)})")
 
-        return marketing_image
+        return True
 
+    def save_domain_events(self, domain_events: List[DomainEvent]) -> bool:
+        """
+        Saves a list of domain events to Firestore
+        by popping the events list and saving directly to the domain events collection.
+        """ 
+        event_id_list = []
+        batch = self.repository_db.batch()
+
+        for event in domain_events:
+            if isinstance(event, dict):
+                event_data = self._convert_keys_snake_to_camel_case(event)
+            else:
+                event_data = self._convert_keys_snake_to_camel_case(self.domain_events_factory.to_dict(event))
+
+            event_doc_id = str(event_data["id"])
+            event_id_list.append(event_doc_id)
+            event_ref = self.repository_db.collection(self.repository_domain_event_collection_name).document(event_doc_id)
+            print(f"Saving {event_data['type']} event with ID {event_doc_id}")
+
+            processed_event_data = self._pre_persist_processing(event_data)
+            batch.set(event_ref, processed_event_data)
+
+        batch.commit()
+        print(f"Saved {len(event_id_list)} domain events (IDs: {', '.join(event_id_list)})")
+        return True
+    
     def retrieve_by_id(self, id: uuid.UUID) -> Optional[MarketingImage]:
         """
         Retrieves a marketing image aggregate from Firestore by its ID.
@@ -215,7 +274,7 @@ class GoogleCloudFirestoreRepository:
             marketing_images.append(self.aggregate_factory.from_dict(data))
         return marketing_images
 
-    def remove_marketing_image(self, id: uuid.UUID) -> None:
+    def remove_marketing_image(self, id: uuid.UUID) -> bool:
         """
         Performs a hard delete of a marketing image aggregate from Firestore.
         """
@@ -224,11 +283,11 @@ class GoogleCloudFirestoreRepository:
             doc_ref.delete()
             message = f"Deleted marketing image with ID {id}"
             logger.info(message)
-            return {"message": message}
+            return True
         except Exception as e:
             message = f"Error deleting marketing image with ID {id}: {e}"
             logger.error(message)
-            return {"message": message}
+            return False
 
 repository = GoogleCloudFirestoreRepository(
     config.google_cloud_project, config.repository_db_location, config.repository_db_name, config.repository_aggregate_collection_name, config.repository_domain_event_collection_name 
@@ -249,15 +308,17 @@ def generate_image_tool(prompt: str) -> dict:
         A dictionary containing the result of the image generation process.
     """
 
-    image_id = uuid.uu
+    image_id = str(uuid.uuid4())
     file_name = f"marketing-{image_id}.png"
     mime_type = "image/png"
+    image_storage_region = config.ai_image_model_1_location
+    genai_image_model_region = config.ai_image_model_1_location
     img_width, img_height = 0, 0
 
     genai_images_client = genai_images.Client(
         vertexai=True,
         project=config.google_cloud_project,
-        location=config.ai_image_model_1_location,
+        location=genai_image_model_region,
         http_options=genai_types.HttpOptions(api_version="v1"),
     )
 
@@ -286,10 +347,16 @@ def generate_image_tool(prompt: str) -> dict:
         f"Image generated using {config.ai_image_model_1_name} with size {len(generated_image_bytes)}, mime type {generated_image_mime_type}, and dimensions {img_height}*{img_width}"
     )
 
+    initial_metadata = {
+        "description": prompt,
+        "keywords": "",
+    }    
+
     public_url, checksum = storage_client.save_marketing_image_object(
         image_data=generated_image_bytes,
         file_name=file_name,
         content_type=generated_image_mime_type,
+        metadata=initial_metadata,
     )
     image_storage_url = public_url
 
@@ -319,54 +386,210 @@ def generate_image_tool(prompt: str) -> dict:
     marketing_image_aggregate.generate()
 
     # Persist the aggregate and its events
-    repository.save(marketing_image_aggregate)
+    repository_save = repository.save_marketing_image(marketing_image_aggregate)
 
-    return {"image_storage_url": image_storage_url}
+    if repository_save:
+        return {
+            "image_id": image_id,
+            "image_storage_region": image_storage_region,
+            "image_storage_url": image_storage_url
+        }
+    else:
+        return {
+            "image_id": image_id,
+            "error": "Failed to save marketing image aggregate to the repository.",
+        }
+    
+def retrieve_image_tool(image_id: str) -> dict:
+    """
+    Retrieves a marketing image aggregate from the repository by its ID.
 
+    Args:
+        image_id (str): The ID of the image to retrieve.
 
-def accept_image_tool(image_id: str) -> dict:
-    # Here we will load the aggregate from the repository, 
-    # change the status value to 'accepted', 
-    # create an associated 'accepted' domain event, 
-    # save the aggregate and new domain event to the repository,
-    # and then return a suitable message
-    return {"feature":"to_be_implemented", "image_id": image_id}
-
-def reject_image_tool(image_id: str) -> dict:
-    # Here we will load the aggregate from the repository, 
-    # change the status value to 'rejected', 
-    # create an associated 'rejected' domain event, 
-    # save the aggregate and new domain event to the repository,
-    # and then return a suitable message
-    return {"feature":"to_be_implemented", "image_id": image_id}
-
-def remove_image_tool(image_id: str) -> dict:
+    Returns:
+        A dictionary containing the marketing image data or an error message.
+    """
     try:
         image_uuid = uuid.UUID(image_id)
     except ValueError:
-        return {"error": f"Invalid image_id format: {image_id}. It must be a valid UUID."}
+        message = f"Invalid image_id format: '{image_id}'. It must be a valid UUID."
+        logger.error(message)
+        return {"error": message, "image_id": image_id}
 
-    # The file name format will need to be more robust as not all images are .png
-    # The image will need locating via a call to the Firestore Repository DB first
-    # For now, we'll assume this convention is correct.
-    file_name = f"marketing-{image_id}.png"
+    marketing_image = repository.retrieve_by_id(image_uuid)
 
-    # We will also need an Domain Event implementation in this function - i.e. create and store a 'removed' Domain Event.
+    if not marketing_image:
+        message = f"Image with ID '{image_id}' not found."
+        logger.warning(message)
+        return {"error": message, "image_id": image_id}
+    
+    # Convert the MarketingImage aggregate to a dictionary for the tool output
+    image_data = aggregate_factory.to_dict(marketing_image)
+    return {"image_id": image_id, "image_data": image_data}
 
-    storage_removal_result = storage_client.remove_marketing_image_object(file_name)
-    repository_removal_result = repository.remove_marketing_image(image_uuid)
 
-    return {"storage_removal_result": storage_removal_result, "repository_removal_result": repository_removal_result["message"]}
+def _update_image_status(image_id: str, marketing_image: MarketingImage, action: callable, success_message: str, save_aggregate: bool = True) -> dict:
+    """
+    A helper function to update the status of a marketing image.
+
+    Args:
+        image_id (str): The ID of the image to update.
+        action (callable): The method to call on the marketing image aggregate - e.g. accept, reject.
+        success_message (str): The message to return on successful update.
+        save_aggregate (bool): Whether to save the whole aggregate or just the events.
+
+    Returns:
+        A dictionary containing the result of the operation.
+    """
+    action(marketing_image)
+
+    try:
+        if save_aggregate:
+            repository.save_marketing_image(marketing_image)
+        else:
+            events_to_save: List[DomainEvent] = marketing_image.pull_and_clear_domain_events()
+            print(f"Saving domain events: {len(events_to_save)}")
+            repository.save_domain_events(events_to_save)
+        logger.info(f"{success_message} (ID: {image_id})")
+        return {"image_id": image_id, "message": success_message}
+    except Exception as e:
+        message = f"Failed to save updated image with ID '{image_id}' to the repository."
+        logger.error(f"{message} Error: {e}")
+        return {"error": message, "image_id": image_id}
 
 
-def change_image_metadata_tool(image_id: str, new_description: str, new_keywords: list[str]) -> dict:
-    # Here we will load the aggregate from the repository, 
-    # change the description, dimensions, keywords, size, and/or url value(s), 
-    # create an associated 'metadata_changed' domain event, 
-    # save the aggregate and new domain event to the repository,
-    # and then return a suitable message
-    return {"feature":"to_be_implemented", "image_id": image_id}
+def accept_image_tool(image_id: str) -> dict:
+    """
+    Load the aggregate from the repository, 
+    call the aggregate's accept method,
+    (an 'accepted' domain event is added),
+    save the updated aggregate state and new domain event to the repository,
+    and then return a suitable message.
+    """
+    try:
+        image_uuid = uuid.UUID(image_id)
+    except ValueError:
+        message = f"Invalid image_id format: '{image_id}'. It must be a valid UUID."
+        logger.error(message)
+        return {"error": message, "image_id": image_id}
 
+    marketing_image = repository.retrieve_by_id(image_uuid)
+    if not marketing_image:
+        message = f"Image with ID '{image_id}' not found."
+        logger.warning(message)
+        return {"error": message, "image_id": image_id}
+    return _update_image_status(image_id, marketing_image, lambda img: img.accept(), "Image approval status set as accepted.", save_aggregate=True)
+
+
+def reject_image_tool(image_id: str) -> dict:
+    """
+    Load the aggregate from the repository, 
+    call the aggregate's reject method,
+    (an 'rejected' domain event is added),
+    save the updated aggregate state and new domain event to the repository,
+    and then return a suitable message.
+    """
+    try:
+        image_uuid = uuid.UUID(image_id)
+    except ValueError:
+        message = f"Invalid image_id format: '{image_id}'. It must be a valid UUID."
+        logger.error(message)
+        return {"error": message, "image_id": image_id}
+
+    marketing_image = repository.retrieve_by_id(image_uuid)
+    if not marketing_image:
+        message = f"Image with ID '{image_id}' not found."
+        logger.warning(message)
+        return {"error": message, "image_id": image_id}
+    return _update_image_status(image_id, marketing_image, lambda img: img.reject(), "Image approval status set as rejected.", save_aggregate=True)
+
+
+def remove_image_tool(image_id: str) -> dict:
+    """
+    Loads the aggregate, calls its remove method, 
+    deletes the image from cloud storage and the aggregate from Firestore,
+    saves the 'removed' domain event,
+    and then returns a suitable message.
+    """
+    try:
+        image_uuid = uuid.UUID(image_id)
+    except ValueError:
+        message = f"Invalid image_id format: '{image_id}'. It must be a valid UUID."
+        logger.error(message)
+        return {"error": message, "image_id": image_id}
+
+    marketing_image = repository.retrieve_by_id(image_uuid)
+
+    if not marketing_image:
+        message = f"Image with ID '{image_id}' not found."
+        logger.warning(message)
+        return {"error": message, "image_id": image_id}
+   
+    url_string = marketing_image.url.url
+    file_name = url_string.split('/')[-1]
+    marketing_image_object_deletion_result = storage_client.delete_marketing_image_object(file_name)
+    if marketing_image_object_deletion_result:
+        marketing_image_aggregate_removal_result = repository.remove_marketing_image(image_uuid)
+        if marketing_image_aggregate_removal_result:
+            update_result = _update_image_status(image_id, marketing_image, lambda img: img.remove(), "Image removal event saved.", save_aggregate=False)
+            if "error" in update_result:
+                return update_result # Propagate error if saving the event failed
+            else:
+                return {"image_id": image_id, "message": f"Image with ID {image_id} removed successfully."}
+        else:
+            return {"image_id": image_id, "error": "Failed to remove the aggregate from the repository database."}
+    else:
+        return {"image_id": image_id, "error": "Failed to delete image object from cloud storage."}
+
+
+def change_image_metadata_tool(image_id: str, new_description: Optional[str] = None, new_dimensions: Optional[dict] = None, new_keywords: Optional[List[str]] = None, new_size: Optional[int] = None, new_url: Optional[str] = None) -> dict:
+    """
+    Loads the aggregate from the repository, changes metadata,
+    saves the changed aggregate and new domain event,
+    and then returns a suitable message.
+    """
+    try:
+        image_uuid = uuid.UUID(image_id)
+    except ValueError:
+        message = f"Invalid image_id format: '{image_id}'. It must be a valid UUID."
+        logger.error(message)
+        return {"error": message, "image_id": image_id}
+
+    marketing_image = repository.retrieve_by_id(image_uuid)
+
+    if not marketing_image:
+        message = f"Image with ID '{image_id}' not found."
+        logger.warning(message)
+        return {"error": message, "image_id": image_id}
+
+    description_vo = ImageDescription(new_description) if new_description is not None else None
+    keywords_vo = ImageKeywords(new_keywords) if new_keywords is not None else None
+    dimensions_vo = ImageDimensions.from_dict(new_dimensions) if new_dimensions is not None else None
+    size_vo = ImageSize(new_size) if new_size is not None else None
+    url_vo = ImageUrl(new_url) if new_url is not None else None
+
+    if not any([description_vo, keywords_vo, dimensions_vo, size_vo, url_vo]):
+        return {"image_id": image_id, "message": "No metadata changes provided."}
+
+    marketing_image.change_metadata(
+        description=description_vo,
+        keywords=keywords_vo,
+        dimensions=dimensions_vo,
+        size=size_vo,
+        url=url_vo
+    )
+
+    try:
+        repository.save_marketing_image(marketing_image)
+        success_message = f"Image metadata for ID {image_id} changed successfully."
+        logger.info(success_message)
+        return {"image_id": image_id, "message": success_message}
+    except Exception as e:
+        message = f"Failed to save updated image with ID '{image_id}' to the repository."
+        logger.error(f"{message} Error: {e}")
+        return {"error": message, "image_id": image_id}
+    
 
 def create_agent(config: Config) -> Agent:
     agent = Agent(

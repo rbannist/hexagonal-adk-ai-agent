@@ -46,7 +46,7 @@ class MarketingImageAggregateFactory(AggregateFactory):
         mime_type = MimeType.from_dict(data={"mime_type": data["mime_type"]}) if data.get("mime_type") else None
         checksum = Checksum.from_dict(data={"checksum": data["checksum"]}) if data.get("checksum") else None
         created_by = CreatedBy.from_dict(data={"user_id": data["created_by"]}) if data.get("created_by") else None
-        created_at = CreatedAt.from_string(timestamp=data["created_at"]) if isinstance(data.get("created_at"), str) else None
+        created_at = CreatedAt.from_string(timestamp=data["created_at"]) if isinstance(data.get("created_at"), str) else CreatedAt.now()
         last_modified_at = LastModifiedAt.from_string(timestamp=data["last_modified_at"]) if isinstance(data.get("last_modified_at"), str) else None
         
         # Create domain events list from the dictionary data
@@ -181,9 +181,12 @@ class MarketingImageAggregateFactory(AggregateFactory):
         returning a dictionary representation.
         """
         marketing_image = self.from_dict(data)
-        description = ImageDescription.from_dict(data={"description": description})
-        keywords = ImageKeywords.from_dict(data={"keywords": keywords})
-        marketing_image.change_metadata(description=description, keywords=keywords)
+        description = ImageDescription.from_dict(data={"description": description}) if description is not None else None
+        keywords = ImageKeywords.from_dict(data={"keywords": keywords}) if keywords is not None else None
+        dimensions = ImageDimensions.from_dict(data=data["dimensions"]) if data.get("dimensions") is not None else None
+        size = ImageSize.from_dict(data={"size": data["size"]}) if data.get("size") is not None else None
+        url = ImageUrl.from_dict(data={"url": data["url"]}) if data.get("url") else None
+        marketing_image.change_metadata(description=description, keywords=keywords, dimensions=dimensions, size=size, url=url)
         marketing_image_return_dict = self.to_dict(marketing_image)
         return marketing_image_return_dict
         
