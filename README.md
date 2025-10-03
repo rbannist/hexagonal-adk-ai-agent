@@ -55,7 +55,7 @@ The architecture in directory [2](/2/) is designed to solve this by wrapping the
 ### Main Prerequisites
 
 * Python 3.12
-* uv
+* uv ([installation instructions](https://docs.astral.sh/uv/getting-started/installation/))
 * pip
 * Virtualenv (recommended)
 

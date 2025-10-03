@@ -156,7 +156,7 @@ sequenceDiagram
 ### Prerequisites
 
 - Python 3.12+
-- uv (recommended for dependency management)
+* uv ([installation instructions](https://docs.astral.sh/uv/getting-started/installation/))
 - Google Cloud Platform Project: At least one Google Cloud project is required to house all the necessary cloud resources.
 - Google Cloud Vertex AI: You'll need to have the Vertex AI API enabled in your Google Cloud project to access the generative AI models.
 - Google Cloud Storage Buckets:
@@ -197,7 +197,15 @@ sequenceDiagram
 
 ### Configuration
 
-The application is configured using environment variables.  Create a `.env` file (see `.env.example`) and populate it.
+The application is configured using environment variables.  Create an `.env` file (see `.env.example`) and populate it.
+
+It's very important that you set the following environmental variables before running, either using an `.env` file or using the following commands:
+
+```bash
+GOOGLE_CLOUD_PROJECT=<your-project-id>
+GOOGLE_CLOUD_LOCATION=europe-west4 # Or another supported region with respect to AI model support, etc.
+GOOGLE_GENAI_USE_VERTEXAI=TRUE
+```
 
 ### Installation
 
@@ -219,10 +227,14 @@ The application is configured using environment variables.  Create a `.env` file
 
 ### Running the Application Locally
 
-1.  **Authenticate with gcloud:**
+1.  **Authenticate with gcloud, set a quota project, and set a project:**
 
     ```bash
-    gcloud auth application-default login
+    gcloud auth login (if not already logged in)
+    gcloud auth application-default login (if not already logged in)
+    export GOOGLE_CLOUD_PROJECT=<your-project-id>
+    gcloud config set project $GOOGLE_CLOUD_PROJECT (if not already set)
+    gcloud auth application-default set-quota-project $GOOGLE_CLOUD_PROJECT (if not already set)
     ```
 
 2.  **Start the server from the root directory:**
@@ -231,7 +243,10 @@ The application is configured using environment variables.  Create a `.env` file
     uv run python __main__.py
     ```
 
-The server will be running at `http://0.0.0.0:8080` and can be tested with [A2AInspector](https://github.com/a2aproject/a2a-inspector).
+The server will be running at `http://0.0.0.0:8080` (or a host:port combo you have set using environment variables).
+
+3.  **Use adk web or A2A Inspector to test the agent:**
+TBC [A2AInspector](https://github.com/a2aproject/a2a-inspector).
 
 ## Running with Docker
 
