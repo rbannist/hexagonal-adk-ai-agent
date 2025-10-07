@@ -130,21 +130,21 @@ class MarketingImageAggregateFactory(AggregateFactory):
         marketing_image_return_dict = self.to_dict(marketing_image)
         return marketing_image_return_dict
 
-    def accept(self, data: Dict[str, Any]) -> Dict:
+    def approve(self, data: Dict[str, Any]) -> Dict:
         """
         Reconstitutes a MarketingImage aggregate from a dictionary of data and then
-        calls the object's accept method before
+        calls the object's approve method before
         returning a dictionary representation.
         """
         marketing_image = self.from_dict(data)
-        marketing_image.accept()
+        marketing_image.approve()
         marketing_image_return_dict = self.to_dict(marketing_image)
         return marketing_image_return_dict
 
     def reject(self, data: Dict[str, Any]) -> Dict:
         """
         Reconstitutes a MarketingImage aggregate from a dictionary of data and then
-        calls the object's accept reject before
+        calls the object's approve method before
         returning a dictionary representation.
         """
         marketing_image = self.from_dict(data)

@@ -5,7 +5,7 @@ import uuid
 
 from .base_output_port import BaseOutputPort
 
-from ...domain.events.marketing_image_accepted_event import MarketingImageAcceptedEvent
+from ...domain.events.marketing_image_approved_event import MarketingImageApprovedEvent
 from ...domain.events.marketing_image_rejected_event import MarketingImageRejectedEvent
 from ...domain.events.marketing_image_removed_event import MarketingImageRemovedEvent
 from ...domain.events.marketing_image_modified_event import MarketingImageModifiedEvent
@@ -21,7 +21,7 @@ class MarketingImageDomainEventEventStoreQueryOutputPort(BaseOutputPort[T], ABC)
     """
 
     @abstractmethod
-    def retrieve_by_event_id(self, id: uuid.UUID, aggregate_id: uuid.UUID = None) -> Optional[MarketingImageGeneratedEvent | MarketingImageModifiedEvent | MarketingImageAcceptedEvent | MarketingImageRejectedEvent | MarketingImageRemovedEvent | MarketingImageMetadataChangedEvent]:
+    def retrieve_by_event_id(self, id: uuid.UUID, aggregate_id: uuid.UUID = None) -> Optional[MarketingImageGeneratedEvent | MarketingImageModifiedEvent | MarketingImageApprovedEvent | MarketingImageRejectedEvent | MarketingImageRemovedEvent | MarketingImageMetadataChangedEvent]:
         """
         Retrieves a marketing image domain event by its event ID.
 
@@ -35,7 +35,7 @@ class MarketingImageDomainEventEventStoreQueryOutputPort(BaseOutputPort[T], ABC)
         raise NotImplementedError
     
     @abstractmethod
-    def retrieve_by_aggregate_id(self, aggregate_id: uuid.UUID, event_type: str = None, start_date: datetime = None, end_date: datetime = None) -> List[MarketingImageGeneratedEvent | MarketingImageModifiedEvent | MarketingImageAcceptedEvent | MarketingImageRejectedEvent | MarketingImageRemovedEvent | MarketingImageMetadataChangedEvent]:
+    def retrieve_by_aggregate_id(self, aggregate_id: uuid.UUID, event_type: str = None, start_date: datetime = None, end_date: datetime = None) -> List[MarketingImageGeneratedEvent | MarketingImageModifiedEvent | MarketingImageApprovedEvent | MarketingImageRejectedEvent | MarketingImageRemovedEvent | MarketingImageMetadataChangedEvent]:
         """
         Retrieves all marketing image domain events for a specific aggregate ID.
 
@@ -52,7 +52,7 @@ class MarketingImageDomainEventEventStoreQueryOutputPort(BaseOutputPort[T], ABC)
 
 
     @abstractmethod
-    def retrieve_by_event_type(self, event_type: str, aggregate_id: uuid.UUID = None, start_date: datetime = None, end_date: datetime = None) -> List[MarketingImageGeneratedEvent | MarketingImageModifiedEvent | MarketingImageAcceptedEvent | MarketingImageRejectedEvent | MarketingImageRemovedEvent | MarketingImageMetadataChangedEvent]:
+    def retrieve_by_event_type(self, event_type: str, aggregate_id: uuid.UUID = None, start_date: datetime = None, end_date: datetime = None) -> List[MarketingImageGeneratedEvent | MarketingImageModifiedEvent | MarketingImageApprovedEvent | MarketingImageRejectedEvent | MarketingImageRemovedEvent | MarketingImageMetadataChangedEvent]:
         """
         Retrieves all marketing image domain events of a specific type.
 
@@ -68,7 +68,7 @@ class MarketingImageDomainEventEventStoreQueryOutputPort(BaseOutputPort[T], ABC)
         raise NotImplementedError
 
     @abstractmethod
-    def retrieve_all(self) -> List[MarketingImageGeneratedEvent | MarketingImageModifiedEvent | MarketingImageAcceptedEvent | MarketingImageRejectedEvent | MarketingImageRemovedEvent | MarketingImageMetadataChangedEvent]:
+    def retrieve_all(self) -> List[MarketingImageGeneratedEvent | MarketingImageModifiedEvent | MarketingImageApprovedEvent | MarketingImageRejectedEvent | MarketingImageRemovedEvent | MarketingImageMetadataChangedEvent]:
         """
         Retrieves all marketing image domain events.
 

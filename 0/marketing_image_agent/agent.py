@@ -184,13 +184,13 @@ def generate_image_tool(prompt: str) -> dict:
     }
 
 
-def accept_image_tool(image_id: str) -> dict:
+def approve_image_tool(image_id: str) -> dict:
     file_name = f"marketing-{image_id}.png"
-    metadata = {"approvalStatus": "accepted"}
+    metadata = {"approvalStatus": "approved"}
     if storage_client.update_marketing_image_metadata(file_name, metadata):
         return {
             "image_id": image_id,
-            "message": "image approval status set as accepted",
+            "message": "image approval status set as approved",
         }
     else:
         return {"image_id": image_id, "message": "failed to set image approval status"}
@@ -247,7 +247,7 @@ def create_agent(config: Config) -> Agent:
         model=config.ai_adk_model_1_name,
         description=config.ai_adk_agent_1_description,
         instruction=config.ai_adk_agent_1_instruction,
-        tools=[generate_image_tool, accept_image_tool, reject_image_tool, remove_image_tool, change_image_metadata_tool],
+        tools=[generate_image_tool, approve_image_tool, reject_image_tool, remove_image_tool, change_image_metadata_tool],
     )
     return agent
 

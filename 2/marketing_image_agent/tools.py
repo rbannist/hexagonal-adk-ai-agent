@@ -13,7 +13,7 @@ class InputDataBaseClass(BaseModel):
     The 'request_type' field is used to discriminate between different input request types.
     """
     request_id: str
-    request_type: Literal["generate", "change", "set_acceptance_status", "remove"]
+    request_type: Literal["generate", "change", "set_approval_status", "remove"]
     request_time: Optional[str] = None
     traceparent: Optional[str] = None
     tracestate: Optional[str] = None
@@ -27,7 +27,7 @@ class GenerateMarketingImageInputData(InputDataBaseClass):
 
 # class ChangeMarketingImageInputData(InputDataBaseClass):
 
-# class SetMarketingImageAcceptanceStatusInputData(InputDataBaseClass):
+# class SetMarketingImageApprovalStatusInputData(InputDataBaseClass):
 
 # class RemoveMarketingImageInputData(InputDataBaseClass):
 

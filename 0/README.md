@@ -54,7 +54,7 @@ sequenceDiagram
         marketing_image_agent->>GoogleCloudStorage: save_marketing_image_object()
         GoogleCloudStorage-->>marketing_image_agent: public_url, checksum
         marketing_image_agent-->>Runner: image details
-    else accept_marketing_image
+    else approve_marketing_image
         marketing_image_agent->>GoogleCloudStorage: update_marketing_image_metadata()
         GoogleCloudStorage-->>marketing_image_agent: success/failure
         marketing_image_agent-->>Runner: status

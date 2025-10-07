@@ -435,7 +435,7 @@ def _update_image_status(image_id: str, marketing_image: MarketingImage, action:
 
     Args:
         image_id (str): The ID of the image to update.
-        action (callable): The method to call on the marketing image aggregate - e.g. accept, reject.
+        action (callable): The method to call on the marketing image aggregate - e.g. approve, reject.
         success_message (str): The message to return on successful update.
         save_aggregate (bool): Whether to save the whole aggregate or just the events.
 
@@ -459,11 +459,11 @@ def _update_image_status(image_id: str, marketing_image: MarketingImage, action:
         return {"error": message, "image_id": image_id}
 
 
-def accept_image_tool(image_id: str) -> dict:
+def approve_image_tool(image_id: str) -> dict:
     """
     Load the aggregate from the repository, 
-    call the aggregate's accept method,
-    (an 'accepted' domain event is added),
+    call the aggregate's approve method,
+    (an 'approved' domain event is added),
     save the updated aggregate state and new domain event to the repository,
     and then return a suitable message.
     """
@@ -479,7 +479,7 @@ def accept_image_tool(image_id: str) -> dict:
         message = f"Image with ID '{image_id}' not found."
         logger.warning(message)
         return {"error": message, "image_id": image_id}
-    return _update_image_status(image_id, marketing_image, lambda img: img.accept(), "Image approval status set as accepted.", save_aggregate=True)
+    return _update_image_status(image_id, marketing_image, lambda img: img.approve(), "Image approval status set as approved.", save_aggregate=True)
 
 
 def reject_image_tool(image_id: str) -> dict:
@@ -597,7 +597,7 @@ def create_agent(config: Config) -> Agent:
         model=config.ai_adk_model_1_name,
         description=config.ai_adk_agent_1_description,
         instruction=config.ai_adk_agent_1_instruction,
-        tools=[generate_image_tool, accept_image_tool, reject_image_tool, remove_image_tool, change_image_metadata_tool],
+        tools=[generate_image_tool, approve_image_tool, reject_image_tool, remove_image_tool, change_image_metadata_tool],
     )
     return agent
 

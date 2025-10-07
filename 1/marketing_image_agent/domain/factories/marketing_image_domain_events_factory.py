@@ -4,7 +4,7 @@ from .base_domain_event_factory import DomainEventFactory
 from ..events.base_domain_event import DomainEvent
 from ..events.marketing_image_generated_event import MarketingImageGeneratedEvent
 from ..events.marketing_image_modified_event import MarketingImageModifiedEvent
-from ..events.marketing_image_accepted_event import MarketingImageAcceptedEvent
+from ..events.marketing_image_approved_event import MarketingImageApprovedEvent
 from ..events.marketing_image_rejected_event import MarketingImageRejectedEvent
 from ..events.marketing_image_removed_event import MarketingImageRemovedEvent
 from ..events.marketing_image_metadata_changed_event import MarketingImageMetadataChangedEvent
@@ -57,8 +57,8 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
             "occurred_at": event.occurred_at.isoformat() + "Z",
         }
 
-    def to_marketing_image_accepted_event_dict(self, event: MarketingImageAcceptedEvent) -> Dict:
-        """Serialises a MarketingImageAcceptedEvent object into a dictionary."""
+    def to_marketing_image_approved_event_dict(self, event: MarketingImageApprovedEvent) -> Dict:
+        """Serialises a MarketingImageApprovedEvent object into a dictionary."""
         return {
             "id": event.id,
             "type": event.type,
@@ -129,8 +129,8 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
             return self.to_marketing_image_generated_event_dict(event)
         elif isinstance(event, MarketingImageModifiedEvent):
             return self.to_marketing_image_modified_event_dict(event)
-        elif isinstance(event, MarketingImageAcceptedEvent):
-            return self.to_marketing_image_accepted_event_dict(event)
+        elif isinstance(event, MarketingImageApprovedEvent):
+            return self.to_marketing_image_approved_event_dict(event)
         elif isinstance(event, MarketingImageRejectedEvent):
             return self.to_marketing_image_rejected_event_dict(event)
         elif isinstance(event, MarketingImageRemovedEvent):
@@ -150,8 +150,8 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
             return self.reconstitute_marketing_image_generated_event(event_data, event_id) if isinstance(event_data, dict) else None
         elif event_type == DomainEvent.get_event_type("modified"):
             return self.reconstitute_marketing_image_modified_event(event_data, event_id) if isinstance(event_data, dict) else None
-        elif event_type == DomainEvent.get_event_type("accepted"):
-            return self.reconstitute_marketing_image_accepted_event(event_data, event_id) if isinstance(event_data, dict) else None
+        elif event_type == DomainEvent.get_event_type("approved"):
+            return self.reconstitute_marketing_image_approved_event(event_data, event_id) if isinstance(event_data, dict) else None
         elif event_type == DomainEvent.get_event_type("rejected"):
             return self.reconstitute_marketing_image_rejected_event(event_data, event_id) if isinstance(event_data, dict) else None
         elif event_type == DomainEvent.get_event_type("removed"):
@@ -201,9 +201,9 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
             last_modified_at=data["last_modified_at"],
         )
 
-    def reconstitute_marketing_image_accepted_event(self, data: Dict):
-        """Reconstitutes a MarketingImageAcceptedEvent from a dictionary."""
-        return MarketingImageAcceptedEvent(
+    def reconstitute_marketing_image_approved_event(self, data: Dict):
+        """Reconstitutes a MarketingImageApprovedEvent from a dictionary."""
+        return MarketingImageApprovedEvent(
             id=data["id"],
             url=data["url"],
             checksum=data["checksum"],

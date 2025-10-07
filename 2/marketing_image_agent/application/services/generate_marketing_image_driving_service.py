@@ -4,7 +4,7 @@ from ..ports.generate_marketing_image_input_port import GenerateMarketingImageIn
 from ..command_objects.base_command_object import Command
 from ..command_objects.generate_marketing_image_command import GenerateMarketingImageCommand, GenerateMarketingImageData
 from ..command_objects.edit_marketing_image_command import EditMarketingImageCommand
-from ..command_objects.accept_marketing_image_command import AcceptMarketingImageCommand
+from ..command_objects.approve_marketing_image_command import ApproveMarketingImageCommand
 from ..command_objects.reject_marketing_image_command import RejectMarketingImageCommand
 from ..command_objects.remove_marketing_image_command import RemoveMarketingImageCommand
 from ..command_objects.update_marketing_image_metadata_command import UpdateMarketingImageMetadataCommand
@@ -73,16 +73,16 @@ class GenerateMarketingImageDrivingService(
                 else:
                     command = UpdateMarketingImageMetadataCommand(data=request_data, source=self.source)
 
-            case "set_acceptance_status":
-                acceptance_status = request_data.get("acceptance_status")
-                if acceptance_status == "accepted":
-                    command = AcceptMarketingImageCommand(data=request_data, source=self.source)
-                elif acceptance_status == "rejected":
+            case "set_approval_status":
+                approval_status = request_data.get("approval_status")
+                if approval_status == "approved":
+                    command = ApproveMarketingImageCommand(data=request_data, source=self.source)
+                elif approval_status == "rejected":
                     command = RejectMarketingImageCommand(data=request_data, source=self.source)
                 else:
                     raise ValueError(
-                        "Invalid or missing 'acceptance_status' for request type"
-                        f" '{request_type}'. Expected 'accepted' or 'rejected'."
+                        "Invalid or missing 'approval_status' for request type"
+                        f" '{request_type}'. Expected 'approved' or 'rejected'."
                 )
             
             case _:

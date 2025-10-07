@@ -19,7 +19,7 @@ from ..value_objects.checksum import Checksum
 
 from ..events.marketing_image_generated_event import MarketingImageGeneratedEvent
 from ..events.marketing_image_modified_event import MarketingImageModifiedEvent
-from ..events.marketing_image_accepted_event import MarketingImageAcceptedEvent
+from ..events.marketing_image_approved_event import MarketingImageApprovedEvent
 from ..events.marketing_image_rejected_event import MarketingImageRejectedEvent
 from ..events.marketing_image_removed_event import MarketingImageRemovedEvent
 from ..events.marketing_image_metadata_changed_event import MarketingImageMetadataChangedEvent
@@ -67,7 +67,7 @@ class MarketingImage(AggregateRoot):
         self.events_list: List[
                 MarketingImageGeneratedEvent
             | MarketingImageModifiedEvent
-            | MarketingImageAcceptedEvent
+            | MarketingImageApprovedEvent
             | MarketingImageRejectedEvent
             | MarketingImageRemovedEvent
             | MarketingImageMetadataChangedEvent
@@ -97,14 +97,14 @@ class MarketingImage(AggregateRoot):
             )
         )
 
-    def accept(self):
+    def approve(self):
         """
-        Marks the marketing image as accepted.
+        Marks the marketing image as approved.
         """
-        self.status = Status.from_string("ACCEPTED")
+        self.status = Status.from_string("APPROVED")
         self.last_modified_at = LastModifiedAt.now()
         self.add_domain_event(
-            MarketingImageAcceptedEvent(
+            MarketingImageApprovedEvent(
                 id=str(self.id),
                 url=self.url.url,
                 checksum=self.checksum.checksum,

@@ -69,12 +69,12 @@ async def main():
                 ],
             ),
             AgentSkill(
-                id="accept_marketing_image",
-                name="Accept Marketing Image",
-                description="Marks a marketing image as accepted, using its ID.",
-                tags=["image", "accept", "marketing"],
+                id="approve_marketing_image",
+                name="Approve Marketing Image",
+                description="Marks a marketing image as approved, using its ID.",
+                tags=["image", "approve", "marketing"],
                 examples=[
-                    "Accept image with ID 123e4567-e89b-12d3-a456-426614174000",
+                    "Approve image with ID 123e4567-e89b-12d3-a456-426614174000",
                 ],
             ),
             AgentSkill(

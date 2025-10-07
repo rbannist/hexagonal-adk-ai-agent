@@ -14,7 +14,7 @@ def generate_image_tool(prompt: str) -> dict:
     response = marketing_image_generator_tool.generate_image(prompt)
     return response
 
-def accept_image_tool(image_id: str) -> dict:
+def approve_image_tool(image_id: str) -> dict:
     return {"feature":"to_be_implemented", "image_id": image_id}
 
 def reject_image_tool(image_id: str) -> dict:
@@ -36,7 +36,7 @@ def create_agent(container: Container) -> Agent:
         model=container.config.genai.adk.model_1.name(),
         description=container.config.genai.adk.agent_1.description(),
         instruction=container.config.genai.adk.agent_1.instruction(),
-        tools=[generate_image_tool, accept_image_tool, reject_image_tool, remove_image_tool, change_image_metadata_tool],
+        tools=[generate_image_tool, approve_image_tool, reject_image_tool, remove_image_tool, change_image_metadata_tool],
     )
     global marketing_image_generator_tool
     marketing_image_generator_tool = MarketingImageGeneratorTool(container)

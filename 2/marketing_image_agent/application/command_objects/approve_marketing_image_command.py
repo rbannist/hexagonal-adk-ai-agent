@@ -2,7 +2,7 @@ from typing import Dict, Any
 from .base_command_object import Command
 
 
-class AcceptMarketingImageCommand(Command):
+class ApproveMarketingImageCommand(Command):
     def __init__(
         self,
         data: Dict[str, Any],
@@ -11,7 +11,7 @@ class AcceptMarketingImageCommand(Command):
         version: str = "1.0",
     ):
         super().__init__(
-            type=f"{command_prefix}.accept",
+            type=f"{command_prefix}.approve",
             data=data,
             source=source,
             version=version,

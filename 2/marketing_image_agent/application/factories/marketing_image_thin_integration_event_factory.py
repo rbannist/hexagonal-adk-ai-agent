@@ -7,7 +7,7 @@ from ..outbound_integration_events.marketing_image_generated_thin_integration_ev
 from ...domain.events.base_domain_event import DomainEvent
 from ...domain.events.marketing_image_generated_event import MarketingImageGeneratedEvent
 from ...domain.events.marketing_image_modified_event import MarketingImageModifiedEvent
-from ...domain.events.marketing_image_accepted_event import MarketingImageAcceptedEvent
+from ...domain.events.marketing_image_approved_event import MarketingImageApprovedEvent
 from ...domain.events.marketing_image_rejected_event import MarketingImageRejectedEvent
 from ...domain.events.marketing_image_removed_event import MarketingImageRemovedEvent
 from ...domain.events.marketing_image_metadata_changed_event import MarketingImageMetadataChangedEvent
@@ -56,8 +56,8 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
             return self.create_marketing_image_generated_thin_integration_event(domain_event)
         # elif isinstance(domain_event, MarketingImageModifiedEvent):
         #     return self.to_marketing_image_modified_event_dict(domain_event)
-        # elif isinstance(domain_event, MarketingImageAcceptedEvent):
-        #     return self.to_marketing_image_accepted_event_dict(domain_event)
+        # elif isinstance(domain_event, MarketingImageApprovedEvent):
+        #     return self.to_marketing_image_approved_event_dict(domain_event)
         # elif isinstance(domain_event, MarketingImageRejectedEvent):
         #     return self.to_marketing_image_rejected_event_dict(domain_event)
         # elif isinstance(domain_event, MarketingImageRemovedEvent):
@@ -89,8 +89,8 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
             return self.marketing_image_generated_thin_integration_event_to_dict(integration_event)
         # elif isinstance(integration_event, MarketingImageModifiedThinIntegrationEvent):
         #     return self.marketing_image_modified_thin_integration_event_to_dict(integration_event)
-        # elif isinstance(integration_event, MarketingImageAcceptedThinIntegrationEvent):
-        #     return self.marketing_image_accepted_thin_integration_event_to_dict(integration_event)
+        # elif isinstance(integration_event, MarketingImageApprovedThinIntegrationEvent):
+        #     return self.marketing_image_approved_thin_integration_event_to_dict(integration_event)
         # elif isinstance(integration_event, MarketingImageRejectedThinIntegrationEvent):
         #     return self.marketing_image_rejected_thin_integration_event_to_dict(integration_event)
         # elif isinstance(integration_event, MarketingImageRemovedThinIntegrationEvent):

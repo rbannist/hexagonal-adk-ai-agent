@@ -8,7 +8,7 @@ class StatusEnum(str, Enum):
     """
     GENERATED = "GENERATED"
     REVIEWING = "REVIEWING"
-    ACCEPTED = "ACCEPTED"
+    APPROVED = "APPROVED"
     REJECTED = "REJECTED"
     REMOVED = "REMOVED"
 
@@ -74,8 +74,8 @@ class Status(ValueObject):
         if self.status == StatusEnum.GENERATED:
             return new_status in (StatusEnum.REVIEWING, StatusEnum.REMOVED)
         elif self.status == StatusEnum.REVIEWING:
-            return new_status in (StatusEnum.ACCEPTED, StatusEnum.REJECTED, StatusEnum.REMOVED)
-        elif self.status == StatusEnum.ACCEPTED:
+            return new_status in (StatusEnum.APPROVED, StatusEnum.REJECTED, StatusEnum.REMOVED)
+        elif self.status == StatusEnum.APPROVED:
             return new_status == StatusEnum.REMOVED
         elif self.status == StatusEnum.REJECTED:
             return new_status in (StatusEnum.GENERATED, StatusEnum.REMOVED)

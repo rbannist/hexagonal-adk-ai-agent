@@ -3,7 +3,7 @@ import uuid
 from .base_domain_event import DomainEvent
 
 
-class MarketingImageAcceptedEvent(DomainEvent): # Primitives for decoupling, serialisation, versioning, and clarity of intent.
+class MarketingImageApprovedEvent(DomainEvent): # Primitives for decoupling, serialisation, versioning, and clarity of intent.
     def __init__(
         self,
         id: str,
@@ -16,7 +16,7 @@ class MarketingImageAcceptedEvent(DomainEvent): # Primitives for decoupling, ser
         event_source: str = None,
         event_occurred_on: str = None,
     ):
-        event_type = DomainEvent.get_event_type("accepted") if event_type is None else event_type
+        event_type = DomainEvent.get_event_type("approved") if event_type is None else event_type
         event_data = {
             "id": id,
             "url": url,

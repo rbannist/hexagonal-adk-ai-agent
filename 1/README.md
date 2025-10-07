@@ -77,7 +77,7 @@ sequenceDiagram
         marketing_image_agent->>GoogleCloudFirestore: save_marketing_image()
         GoogleCloudFirestore-->>marketing_image_agent: success/failure
         marketing_image_agent-->>Runner: image details
-    else accept_image_tool
+    else approve_image_tool
         marketing_image_agent->>GoogleCloudFirestore: retrieve_by_id()
         GoogleCloudFirestore-->>marketing_image_agent: marketing_image
         marketing_image_agent->>GoogleCloudFirestore: save_marketing_image()

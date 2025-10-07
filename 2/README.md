@@ -127,8 +127,8 @@ sequenceDiagram
         GenerateMarketingImageCommandHandler-->>InMemoryCommandDispatcher: result
         InMemoryCommandDispatcher-->>marketing_image_agent: result
         marketing_image_agent-->>Runner: image details
-    else accept_image_tool
-        marketing_image_agent->>InMemoryCommandDispatcher: dispatch(AcceptMarketingImageCommand)
+    else approve_image_tool
+        marketing_image_agent->>InMemoryCommandDispatcher: dispatch(ApproveMarketingImageCommand)
         InMemoryCommandDispatcher-->>marketing_image_agent: result
         marketing_image_agent-->>Runner: status
     else reject_image_tool
