@@ -32,10 +32,10 @@ marketing_image_generator_tool: MarketingImageGeneratorTool
 
 def create_agent(container: Container) -> Agent:
     agent = Agent(
-        name=container.config.genai.adk.agent_1_name(),
-        model=container.config.genai.adk.agent_1_model_1_name(),
-        description=container.config.genai.adk.agent_1_description(),
-        instruction=container.config.genai.adk.agent_1_instruction(),
+        name=container.config.genai.adk.agent_1.name(),
+        model=container.config.genai.adk.model_1.name(),
+        description=container.config.genai.adk.agent_1.description(),
+        instruction=container.config.genai.adk.agent_1.instruction(),
         tools=[generate_image_tool, accept_image_tool, reject_image_tool, remove_image_tool, change_image_metadata_tool],
     )
     global marketing_image_generator_tool

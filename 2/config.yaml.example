@@ -34,12 +34,18 @@ object_storage:
     bucket: "your-project-id-csew4sb1"
 
 genai:
+  a2a:
+    push_notification_config_store_type: in_memory # in_memory, database_postgresql, database_mysql, database_sqlite
+    task_store_type: in_memory # in_memory, database_postgresql, database_mysql, database_sqlite
   adk:
-    agent_1_artifact_storage_bucket_name: "your-project-id-csew4adkassb1"
-    agent_1_model_1_name: "gemini-2.5-flash"
-    agent_1_name: "marketing_image_generating_agent"
-    agent_1_description: "Agent to generate images for the marketing department within a supermarket retailer"
-    agent_1_instruction: "Create a prompt based on what the user asks for and then pass the prompt to the generate_image tool.  Pass the response from the tool back to the user to conclude each interaction."
+    model_1:
+      name: "gemini-2.5-flash"
+    agent_1:
+      artifact_storage_type: "gcs" # in_memory, gcs
+      artifact_storage_gcs_bucket_name: "rbal-assisted-csew4adkassb1"
+      name: "marketing_image_generating_agent"
+      description: "Agent to generate images for the marketing department within a supermarket retailer"
+      instruction: "Create a prompt based on what the user asks for and then pass the prompt to the generate_image tool.  Pass the response from the tool back to the user to conclude each interaction."
   vertex_ai:
     image:
       project_id: "your-project-id-if-different-for-this-service"

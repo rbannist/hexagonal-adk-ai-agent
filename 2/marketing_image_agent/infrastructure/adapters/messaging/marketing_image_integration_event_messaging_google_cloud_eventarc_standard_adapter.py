@@ -6,7 +6,7 @@ from google.cloud import pubsub_v1
 from ....application.ports.marketing_image_integration_event_messaging_output_port import MarketingImageIntegrationEventMessagingOutputPort
 from ....application.outbound_integration_events.base_outbound_integration_event import IntegrationEvent
 from ....application.factories.marketing_image_thin_integration_event_factory import MarketingImageIntegrationEventsFactory
-# from ....application.outbound_integration_events.marketing_image_generated_thin_integration_event import MarketingImageGeneratedThinIntegrationEvent
+
 
 class MarketingImageIntegrationEventMessagingGoogleCloudEventarcStandardAdapter(MarketingImageIntegrationEventMessagingOutputPort):
     """

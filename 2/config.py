@@ -39,6 +39,7 @@ class Container(containers.DeclarativeContainer):
 
     config.gcp.project_id.from_env("GOOGLE_CLOUD_PROJECT")
     config.gcp.location.from_env("GOOGLE_CLOUD_LOCATION")
+    config.gcp.use_vertex_ai.from_env("GOOGLE_GENAI_USE_VERTEXAI")
     config.gcp.image_generation_model_family.from_env("IMAGE_GENERATION_MODEL_FAMILY")
     
     config.dispatcher.command.prefix.from_env("COMMAND_PREFIX")
@@ -56,6 +57,22 @@ class Container(containers.DeclarativeContainer):
     config.object_storage.gcs.project_id.from_env("GOOGLE_CLOUD_MARKETING_IMAGE_OBJECT_STORAGE_ADAPTER_PROJECT")
     config.object_storage.gcs.location.from_env("GOOGLE_CLOUD_STORAGE_MARKETING_IMAGE_ADAPTER_LOCATION")
     config.object_storage.gcs.bucket.from_env("GOOGLE_CLOUD_STORAGE_MARKETING_IMAGE_ADAPTER_BUCKET")
+
+    config.genai.adk.model_1.name.from_env("ADK_MODEL_1_NAME")
+    config.genai.adk.agent_1.artifact_storage_type.from_env("ADK_AGENT_1_ARTIFACT_STORAGE_TYPE")
+    config.genai.adk.agent_1.artifact_storage_gcs_bucket_name.from_env("ADK_AGENT_1_ARTIFACT_GCS_STORAGE_BUCKET")
+    config.genai.adk.agent_1.example_store_type.from_env("ADK_AGENT_1_EXAMPLE_STORE_TYPE")
+    config.genai.adk.agent_1.session_service_type.from_env("ADK_AGENT_1_SESSION_SERVICE_TYPE")
+    config.genai.adk.agent_1.vertex_ai_agent_engine_session_service_project.from_env("ADK_AGENT_1_VERTEX_AI_AGENT_ENGINE_SESSION_SERVICE_PROJECT")
+    config.genai.adk.agent_1.vertex_ai_agent_engine_session_service_location.from_env("ADK_AGENT_1_VERTEX_AI_AGENT_ENGINE_SESSION_SERVICE_LOCATION")
+    config.genai.adk.agent_1.vertex_ai_agent_engine_session_service_engine_id.from_env("ADK_AGENT_1_VERTEX_AI_AGENT_ENGINE_SESSION_SERVICE_ENGINE_ID")
+    config.genai.adk.agent_1.memory_service_type.from_env("ADK_AGENT_1_MEMORY_SERVICE_TYPE")
+    config.genai.adk.agent_1.vertex_ai_agent_engine_memory_service_project.from_env("ADK_AGENT_1_VERTEX_AI_AGENT_ENGINE_MEMORY_SERVICE_PROJECT")
+    config.genai.adk.agent_1.vertex_ai_agent_engine_memory_service_location.from_env("ADK_AGENT_1_VERTEX_AI_AGENT_ENGINE_MEMORY_SERVICE_LOCATION")
+    config.genai.adk.agent_1.vertex_ai_agent_engine_memory_service_engine_id.from_env("ADK_AGENT_1_VERTEX_AI_AGENT_ENGINE_MEMORY_SERVICE_ENGINE_ID")
+    config.genai.adk.agent_1.name.from_env("ADK_AGENT_1_NAME")
+    config.genai.adk.agent_1.description.from_env("ADK_AGENT_1_DESCRIPTION")
+    config.genai.adk.agent_1.instruction.from_env("ADK_AGENT_1_INSTRUCTION")
 
     config.genai.vertex_ai.image.project_id.from_env("GOOGLE_CLOUD_GENAI_IMAGE_ADAPTER_PROJECT")
     config.genai.vertex_ai.image.imagen_model_location.from_env("GOOGLE_CLOUD_GENAI_IMAGEN_IMAGE_ADAPTER_MODEL_LOCATION")

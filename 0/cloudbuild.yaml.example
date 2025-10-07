@@ -87,7 +87,7 @@ substitutions:
   _SECRET_ADK_AGENT_1_DESCRIPTION: 'rbal-assisted-smadka1d'
   _SECRET_ADK_AGENT_1_INSTRUCTION: 'rbal-assisted-smadka1i'
   _GOOGLE_CLOUD_GENAI_IMAGE_MODEL_1_NAME: 'imagen-4.0-fast-generate-001'
-  _GOOGLE_CLOUD_STORAGE_BUCKET: 'rbal-assisted-csew4sb2'
+  _GOOGLE_CLOUD_STORAGE_BUCKET: 'rbal-assisted-csew4sb1'
 
 images:
   - '${_GC_REGION_1}-docker.pkg.dev/${_GC_PROJECT_ID_1}/${_GC_ARTIFACT_REGISTRY_REPO_1}/${_SERVICE_1_NAME}:${BUILD_ID}'

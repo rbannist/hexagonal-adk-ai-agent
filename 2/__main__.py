@@ -31,8 +31,15 @@ config_path = os.path.join(current_dir, 'config.yaml')
 # Load configuration
 container.config.from_yaml(config_path, required=True)
 
-if container.config.genai.adk.agent_1_artifact_storage_bucket_name() is not None:
-    print(f"Initialising ADK Agent with Artifact Storage Bucket: {container.config.genai.adk.agent_1_artifact_storage_bucket_name()}")
+artifact_storage_type = container.config.genai.adk.agent_1.artifact_storage_type()
+if artifact_storage_type == "gcs":
+    if container.config.genai.adk.agent_1.artifact_storage_gcs_bucket_name() is not None:
+       gcs_artifact_storage_bucket = container.config.genai.adk.agent_1.artifact_storage_gcs_bucket_name()
+       print(f"Initialising ADK Agent with with {artifact_storage_type} Artifact Storage and Bucket: {gcs_artifact_storage_bucket}")
+elif artifact_storage_type == "in_memory":
+    print(f"Initialising ADK Agent with {artifact_storage_type} Artifact Storage")
+else:
+    raise ValueError
 
 marketing_image_agent = create_agent(container)
 
@@ -106,7 +113,7 @@ async def main():
     request_handler = DefaultRequestHandler(
         agent_executor=ADKAgentExecutor(
             agent=marketing_image_agent,
-            artifact_storage_bucket_name=container.config.genai.adk.agent_1_artifact_storage_bucket_name(),
+            artifact_storage_bucket_name=container.config.genai.adk.agent_1.artifact_storage_gcs_bucket_name(),
         ),
         task_store=task_store,
     )

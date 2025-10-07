@@ -42,7 +42,7 @@ class GenerateMarketingImageCoreService:
 
         generated_marketing_image = self.genai_image_generator.generate_marketing_image(prompt=image_generation_prompt, min_dimensions=image_min_dimensions, max_dimensions=image_max_dimensions, mime_type=mime_type)
         
-        image_file_name = f"{request_id}.png"
+        image_file_name = f"marketing-{request_id}.png"
         generated_image_bytes = generated_marketing_image["image_data"]
         generated_image_dimensions = generated_marketing_image["image_dimensions"]
         generated_image_mime_type = generated_marketing_image["mime_type"]

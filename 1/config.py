@@ -67,7 +67,7 @@ class Config:
         self.ai_adk_agent_1_artifact_storage_bucket_name = _get_config(
             ai_adk_agent_1_artifact_storage_bucket_name,
             "ADK_AGENT_1_ARTIFACT_STORAGE_BUCKET_NAME",
-            "rbal-assisted-csew4sb2",
+            "rbal-assisted-csew4sb1",
         )
         self.ai_adk_agent_1_name = _get_config(
             ai_adk_agent_1_name, "ADK_AGENT_1_NAME", "marketing_creative_image_lifecycle_agent"
@@ -91,7 +91,7 @@ class Config:
             "imagen-4.0-fast-generate-001",
         )
         self.storage_bucket_name = _get_config(
-            storage_bucket_name, "GOOGLE_CLOUD_STORAGE_BUCKET", "rbal-assisted-csew4sb2"
+            storage_bucket_name, "GOOGLE_CLOUD_STORAGE_BUCKET", "rbal-assisted-csew4sb1"
         )
 
         self.repository_db_location = _get_config(
