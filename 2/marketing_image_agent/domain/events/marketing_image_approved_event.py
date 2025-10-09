@@ -7,10 +7,10 @@ class MarketingImageApprovedEvent(DomainEvent): # Primitives for decoupling, ser
     def __init__(
         self,
         id: str,
+        approved_at: str,
+        approved_by: str,
         url: str,
         checksum: str,
-        created_at: str,
-        last_modified_at: str,
         event_id: str = None,
         event_type: str = None,
         event_source: str = None,
@@ -19,10 +19,10 @@ class MarketingImageApprovedEvent(DomainEvent): # Primitives for decoupling, ser
         event_type = DomainEvent.get_event_type("approved") if event_type is None else event_type
         event_data = {
             "id": id,
+            "approved_at": approved_at,
+            "approved_by": approved_by,
             "url": url,
             "checksum": checksum,
-            "created_at": created_at,
-            "last_modified_at": last_modified_at,
         }
         super().__init__(
             id=str(uuid.uuid4()) if not event_id else event_id,

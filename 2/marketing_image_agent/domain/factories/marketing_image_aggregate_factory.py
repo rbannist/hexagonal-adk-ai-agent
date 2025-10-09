@@ -174,18 +174,26 @@ class MarketingImageAggregateFactory(AggregateFactory):
         marketing_image_return_dict = self.to_dict(marketing_image)
         return marketing_image_return_dict
     
-    def change_metadata(self, data: Dict[str, Any], description: str, keywords: dict) -> Dict:
+    def change_metadata(self, data: Dict[str, Any], description: str = None, keywords: list = None, dimensions: dict = None, size: int = None, url: str = None) -> MarketingImage:
         """
         Reconstitutes a MarketingImage aggregate from a dictionary of data and then
         calls the object's change_metadata method before
-        returning a dictionary representation.
+        returning the updated aggregate instance.
         """
         marketing_image = self.from_dict(data)
-        description = ImageDescription.from_dict(data={"description": description}) if description is not None else None
-        keywords = ImageKeywords.from_dict(data={"keywords": keywords}) if keywords is not None else None
-        dimensions = ImageDimensions.from_dict(data=data["dimensions"]) if data.get("dimensions") is not None else None
-        size = ImageSize.from_dict(data={"size": data["size"]}) if data.get("size") is not None else None
-        url = ImageUrl.from_dict(data={"url": data["url"]}) if data.get("url") else None
-        marketing_image.change_metadata(description=description, keywords=keywords, dimensions=dimensions, size=size, url=url)
-        marketing_image_return_dict = self.to_dict(marketing_image)
-        return marketing_image_return_dict
+
+        # Only create Value Objects for attributes that are provided.
+        description_vo = ImageDescription(description) if description is not None else None
+        keywords_vo = ImageKeywords(keywords) if keywords is not None else None
+        dimensions_vo = ImageDimensions(**dimensions) if dimensions is not None else None
+        size_vo = ImageSize(size) if size is not None else None
+        url_vo = ImageUrl(url) if url is not None else None
+
+        marketing_image.change_metadata(
+            description=description_vo,
+            keywords=keywords_vo,
+            dimensions=dimensions_vo,
+            size=size_vo,
+            url=url_vo
+        )
+        return marketing_image

@@ -81,8 +81,8 @@ async def main():
             AgentSkill(
                 id="change_marketing_image_metadata",
                 name="Change Marketing Image Metadata",
-                description="Changes the description and keywords for a marketing image, using its ID.",
-                tags=["image", "edit", "metadata", "marketing"],
+                description="Changes the description, keywords, dimensions, url, and/or size of a marketing image, using its ID.",
+                tags=["image", "edit", "change", "metadata", "marketing"],
                 examples=[
                     "Update image 123e4567-e89b-12d3-a456-426614174000 with description 'A better description' and keywords 'new, keywords'",
                     "Update the record of image 123e4567-e89b-12d3-a456-426614174000 to have its actual dimensions of 512*512'",

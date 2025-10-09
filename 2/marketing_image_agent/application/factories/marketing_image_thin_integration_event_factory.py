@@ -4,6 +4,11 @@ from datetime import datetime
 from .base_integration_event_factory import IntegrationEventFactory
 from ..outbound_integration_events.base_outbound_integration_event import IntegrationEvent
 from ..outbound_integration_events.marketing_image_generated_thin_integration_event import MarketingImageGeneratedThinIntegrationEvent
+from ..outbound_integration_events.marketing_image_modified_thin_integration_event import MarketingImageModifiedThinIntegrationEvent
+from ..outbound_integration_events.marketing_image_approved_thin_integration_event import MarketingImageApprovedThinIntegrationEvent
+from ..outbound_integration_events.marketing_image_rejected_thin_integration_event import MarketingImageRejectedThinIntegrationEvent
+from ..outbound_integration_events.marketing_image_removed_thin_integration_event import MarketingImageRemovedThinIntegrationEvent
+from ..outbound_integration_events.marketing_image_metadata_changed_thin_integration_event import MarketingImageMetadataChangedThinIntegrationEvent
 from ...domain.events.base_domain_event import DomainEvent
 from ...domain.events.marketing_image_generated_event import MarketingImageGeneratedEvent
 from ...domain.events.marketing_image_modified_event import MarketingImageModifiedEvent
@@ -49,21 +54,93 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
         )
 
         return marketing_image_generated_thin_integration_event
+
+    def create_marketing_image_modified_thin_integration_event(self, marketing_image_modified_domain_event: MarketingImageModifiedEvent) -> MarketingImageModifiedThinIntegrationEvent:
+        event_data = marketing_image_modified_domain_event.data
+
+        marketing_image_modified_thin_integration_event = MarketingImageModifiedThinIntegrationEvent(
+            id=event_data["id"],
+            modified_at=event_data["modified_at"],
+            modified_by=event_data["modified_by"],
+            url=event_data["url"],
+            description=event_data["description"],
+            dimensions=event_data["dimensions"],
+            size=event_data["size"],
+            mime_type=event_data["mime_type"],
+            checksum=event_data["checksum"],
+        )
+
+        return marketing_image_modified_thin_integration_event
+
+    def create_marketing_image_approved_thin_integration_event(self, marketing_image_approved_domain_event: MarketingImageApprovedEvent) -> MarketingImageApprovedThinIntegrationEvent:
+        event_data = marketing_image_approved_domain_event.data
+
+        marketing_image_approved_thin_integration_event = MarketingImageApprovedThinIntegrationEvent(
+            id=event_data["id"],
+            approved_by=event_data["approved_by"],
+            approved_at=event_data["approved_at"],
+        )
+
+        return marketing_image_approved_thin_integration_event
+
+    def create_marketing_image_rejected_thin_integration_event(self, marketing_image_rejected_domain_event: MarketingImageRejectedEvent) -> MarketingImageRejectedThinIntegrationEvent:
+        event_data = marketing_image_rejected_domain_event.data
+
+        marketing_image_rejected_thin_integration_event = MarketingImageRejectedThinIntegrationEvent(
+            id=event_data["id"],
+            rejected_by=event_data["rejected_by"],
+            rejected_at=event_data["rejected_at"],
+        )
+
+        return marketing_image_rejected_thin_integration_event
     
+    def create_marketing_image_removed_thin_integration_event(self, marketing_image_removed_domain_event: MarketingImageRemovedEvent) -> MarketingImageRemovedThinIntegrationEvent:
+        event_data = marketing_image_removed_domain_event.data
+        
+        marketing_image_removed_thin_integration_event = MarketingImageRemovedThinIntegrationEvent(
+            id=event_data["id"],
+            removed_by=event_data["removed_by"],
+            removed_at=event_data["removed_at"],
+        )
+
+        return marketing_image_removed_thin_integration_event
+
+    def create_marketing_image_metadata_changed_thin_integration_event(self, marketing_image_metadata_changed_domain_event: MarketingImageMetadataChangedEvent) -> MarketingImageMetadataChangedThinIntegrationEvent:
+        event_data = marketing_image_metadata_changed_domain_event.data
+
+        changed_metadata = {
+            "description": event_data.get("description"),
+            "keywords": event_data.get("keywords"),
+            "dimensions": event_data.get("dimensions"),
+            "size": event_data.get("size"),
+            "url": event_data.get("url"),
+        }
+
+        marketing_image_metadata_changed_thin_integration_event = MarketingImageMetadataChangedThinIntegrationEvent(
+            id=event_data["id"],
+            changed_at=event_data["changed_at"],
+            changed_by=event_data["changed_by"],
+            **changed_metadata,
+        )
+
+        return marketing_image_metadata_changed_thin_integration_event
+
+
+
     def create_from_domain_event(self, domain_event: DomainEvent):
         """Method to create an integration event from a domain event."""
         if isinstance(domain_event, MarketingImageGeneratedEvent):
             return self.create_marketing_image_generated_thin_integration_event(domain_event)
-        # elif isinstance(domain_event, MarketingImageModifiedEvent):
-        #     return self.to_marketing_image_modified_event_dict(domain_event)
-        # elif isinstance(domain_event, MarketingImageApprovedEvent):
-        #     return self.to_marketing_image_approved_event_dict(domain_event)
-        # elif isinstance(domain_event, MarketingImageRejectedEvent):
-        #     return self.to_marketing_image_rejected_event_dict(domain_event)
-        # elif isinstance(domain_event, MarketingImageRemovedEvent):
-        #     return self.to_marketing_image_removed_event_dict(domain_event)
-        # elif isinstance(domain_event, MarketingImageMetadataChangedEvent):
-        #     return self.to_marketing_image_metadata_changed_event_dict(domain_event)
+        elif isinstance(domain_event, MarketingImageModifiedEvent):
+            return self.create_marketing_image_modified_thin_integration_event(domain_event)
+        elif isinstance(domain_event, MarketingImageApprovedEvent):
+            return self.create_marketing_image_approved_thin_integration_event(domain_event)
+        elif isinstance(domain_event, MarketingImageRejectedEvent):
+            return self.create_marketing_image_rejected_thin_integration_event(domain_event)
+        elif isinstance(domain_event, MarketingImageRemovedEvent):
+            return self.create_marketing_image_removed_thin_integration_event(domain_event)
+        elif isinstance(domain_event, MarketingImageMetadataChangedEvent):
+            return self.create_marketing_image_metadata_changed_thin_integration_event(domain_event)
         else:
             raise ValueError(f"Unknown event type for serialisation: {type(domain_event)}")
 
@@ -83,19 +160,80 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
             "metadata": self._to_dict_recursive(marketing_image_generated_thin_integration_event.metadata),
         }
 
+    def marketing_image_modified_thin_integration_event_to_dict(self, marketing_image_modified_thin_integration_event: MarketingImageModifiedThinIntegrationEvent) -> dict:
+        """Method to serialise a MarketingImageModifiedThinIntegrationEvent to a dictionary."""
+        return {
+            "id": marketing_image_modified_thin_integration_event.id,
+            "type": marketing_image_modified_thin_integration_event.type,
+            "data": self._to_dict_recursive(marketing_image_modified_thin_integration_event.data),
+            "source": marketing_image_modified_thin_integration_event.source,
+            "version": marketing_image_modified_thin_integration_event.version,
+            "occurred_at": marketing_image_modified_thin_integration_event.occurred_at.isoformat() + "Z",
+            "metadata": self._to_dict_recursive(marketing_image_modified_thin_integration_event.metadata),
+        }
+
+    def marketing_image_approved_thin_integration_event_to_dict(self, marketing_image_approved_thin_integration_event: MarketingImageApprovedThinIntegrationEvent) -> dict:
+        """Method to serialise a MarketingImageApprovedThinIntegrationEvent to a dictionary."""
+        return {
+            "id": marketing_image_approved_thin_integration_event.id,
+            "type": marketing_image_approved_thin_integration_event.type,
+            "data": self._to_dict_recursive(marketing_image_approved_thin_integration_event.data),
+            "source": marketing_image_approved_thin_integration_event.source,
+            "version": marketing_image_approved_thin_integration_event.version,
+            "occurred_at": marketing_image_approved_thin_integration_event.occurred_at.isoformat() + "Z",
+            "metadata": self._to_dict_recursive(marketing_image_approved_thin_integration_event.metadata),
+        }
+    
+    def marketing_image_rejected_thin_integration_event_to_dict(self, marketing_image_rejected_thin_integration_event: MarketingImageRejectedThinIntegrationEvent) -> dict:
+        """Method to serialise a MarketingImageRejectedThinIntegrationEvent to a dictionary."""
+        return {
+            "id": marketing_image_rejected_thin_integration_event.id,
+            "type": marketing_image_rejected_thin_integration_event.type,
+            "data": self._to_dict_recursive(marketing_image_rejected_thin_integration_event.data),
+            "source": marketing_image_rejected_thin_integration_event.source,
+            "version": marketing_image_rejected_thin_integration_event.version,
+            "occurred_at": marketing_image_rejected_thin_integration_event.occurred_at.isoformat() + "Z",
+            "metadata": self._to_dict_recursive(marketing_image_rejected_thin_integration_event.metadata),
+        }
+    
+    def marketing_image_removed_thin_integration_event_to_dict(self, marketing_image_removed_thin_integration_event: MarketingImageRemovedThinIntegrationEvent) -> dict:
+        """Method to serialise a MarketingImageRemovedThinIntegrationEvent to a dictionary."""
+        return {
+            "id": marketing_image_removed_thin_integration_event.id,
+            "type": marketing_image_removed_thin_integration_event.type,
+            "data": self._to_dict_recursive(marketing_image_removed_thin_integration_event.data),
+            "source": marketing_image_removed_thin_integration_event.source,
+            "version": marketing_image_removed_thin_integration_event.version,
+            "occurred_at": marketing_image_removed_thin_integration_event.occurred_at.isoformat() + "Z",
+            "metadata": self._to_dict_recursive(marketing_image_removed_thin_integration_event.metadata),
+        }
+
+    def marketing_image_metadata_changed_thin_integration_event_to_dict(self, marketing_image_metadata_changed_thin_integration_event: MarketingImageMetadataChangedThinIntegrationEvent) -> dict:
+        """Method to serialise a MarketingImageMetadataChangedThinIntegrationEvent to a dictionary."""
+        return {
+            "id": marketing_image_metadata_changed_thin_integration_event.id,
+            "type": marketing_image_metadata_changed_thin_integration_event.type,
+            "data": self._to_dict_recursive(marketing_image_metadata_changed_thin_integration_event.data),
+            "source": marketing_image_metadata_changed_thin_integration_event.source,
+            "version": marketing_image_metadata_changed_thin_integration_event.version,
+            "occurred_at": marketing_image_metadata_changed_thin_integration_event.occurred_at.isoformat() + "Z",
+            "metadata": self._to_dict_recursive(marketing_image_metadata_changed_thin_integration_event.metadata),
+        }
+
+
     def to_dict(self, integration_event: IntegrationEvent):
         """Method to serialise an integration event to a dictionary."""
         if isinstance(integration_event, MarketingImageGeneratedThinIntegrationEvent):
             return self.marketing_image_generated_thin_integration_event_to_dict(integration_event)
-        # elif isinstance(integration_event, MarketingImageModifiedThinIntegrationEvent):
-        #     return self.marketing_image_modified_thin_integration_event_to_dict(integration_event)
-        # elif isinstance(integration_event, MarketingImageApprovedThinIntegrationEvent):
-        #     return self.marketing_image_approved_thin_integration_event_to_dict(integration_event)
-        # elif isinstance(integration_event, MarketingImageRejectedThinIntegrationEvent):
-        #     return self.marketing_image_rejected_thin_integration_event_to_dict(integration_event)
-        # elif isinstance(integration_event, MarketingImageRemovedThinIntegrationEvent):
-        #     return self.marketing_image_removed_thin_integration_event_to_dict(integration_event)
-        # elif isinstance(integration_event, MarketingImageMetadataChangedThinIntegrationEvent):
-        #     return self.marketing_image_metadata_changed_thin_integration_event_to_dict(integration_event)
+        elif isinstance(integration_event, MarketingImageModifiedThinIntegrationEvent):
+            return self.marketing_image_modified_thin_integration_event_to_dict(integration_event)
+        elif isinstance(integration_event, MarketingImageApprovedThinIntegrationEvent):
+            return self.marketing_image_approved_thin_integration_event_to_dict(integration_event)
+        elif isinstance(integration_event, MarketingImageRejectedThinIntegrationEvent):
+            return self.marketing_image_rejected_thin_integration_event_to_dict(integration_event)
+        elif isinstance(integration_event, MarketingImageRemovedThinIntegrationEvent):
+            return self.marketing_image_removed_thin_integration_event_to_dict(integration_event)
+        elif isinstance(integration_event, MarketingImageMetadataChangedThinIntegrationEvent):
+            return self.marketing_image_metadata_changed_thin_integration_event_to_dict(integration_event)
         else:
             raise ValueError(f"Unknown event type for serialisation: {type(integration_event)}")

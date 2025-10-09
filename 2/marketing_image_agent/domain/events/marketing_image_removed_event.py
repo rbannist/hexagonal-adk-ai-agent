@@ -7,11 +7,11 @@ class MarketingImageRemovedEvent(DomainEvent): # Primitives for decoupling, seri
     def __init__(
         self,
         id: str,
+        removed_at: str,
+        removed_by: str,
         url: str,
         size: str,
         checksum: str,
-        created_at: str,
-        last_modified_at: str,
         event_id: str = None,
         event_type: str = None,
         event_source: str = None,
@@ -20,11 +20,11 @@ class MarketingImageRemovedEvent(DomainEvent): # Primitives for decoupling, seri
         event_type = DomainEvent.get_event_type("removed") if event_type is None else event_type
         event_data = {
             "id": id,
+            "removed_at": removed_at,
+            "removed_by": removed_by,
             "url": url,
             "size": size,
             "checksum": checksum,
-            "created_at": created_at,
-            "last_modified_at": last_modified_at,
         }
         super().__init__(
             id=str(uuid.uuid4()) if not event_id else event_id,

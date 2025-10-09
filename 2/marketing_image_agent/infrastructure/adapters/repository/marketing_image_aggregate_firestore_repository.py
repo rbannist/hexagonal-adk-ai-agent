@@ -159,13 +159,9 @@ class MarketingImageAggregateFirestoreRepository(MarketingImageRepositoryOutputP
             marketing_images.append(self.aggregate_factory.from_dict(data)) # type: ignore
         return marketing_images
 
-    def remove(self, id: uuid.UUID) -> None:
+    def remove(self, image_id: uuid.UUID) -> None:
         """
         Performs a hard delete of a marketing image aggregate from Firestore.
-
-        Note: This is a direct data deletion. For event-sourced systems, the
-        recommended approach is to load the aggregate, call its .remove() method
-        to change its status and generate a removal event, and then .save() it.
         """
-        doc_ref = self.db.collection(self.aggregate_collection_name).document(str(id))
+        doc_ref = self.db.collection(self.aggregate_collection_name).document(str(image_id))
         doc_ref.delete()

@@ -1,15 +1,15 @@
 from .base_service import DrivingSideService
 from typing import Dict, Any
-from ..ports.generate_marketing_image_input_port import GenerateMarketingImageInputPort
+from ..ports.change_marketing_image_metadata_input_port import ChangeMarketingImageMetadataInputPort
 from ..command_objects.base_command_object import Command
-from ..command_objects.generate_marketing_image_command import GenerateMarketingImageCommand, GenerateMarketingImageData
+from ..command_objects.change_marketing_image_metadata_command import ChangeMarketingImageMetadataCommand
 
 
-class GenerateMarketingImageDrivingService(
-    DrivingSideService[Command], GenerateMarketingImageInputPort[Command]
+class ChangeMarketingImageMetadataDrivingService(
+    DrivingSideService[Command], ChangeMarketingImageMetadataInputPort[Command]
 ):
     """
-    Application service for handling marketing image generation requests from a driving adapter.
+    Application service for handling marketing image metadata change requests from a driving adapter.
     """
 
     def __init__(self, command_dispatcher, command_prefix: str):
@@ -22,7 +22,7 @@ class GenerateMarketingImageDrivingService(
         """
         self.command_dispatcher = command_dispatcher
         self.command_prefix = command_prefix
-        self.source = "generate-marketing-image-driving-side-service"
+        self.source = "change-marketing-image-metadata-driving-side-service"
 
     def handle(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -39,23 +39,12 @@ class GenerateMarketingImageDrivingService(
         command: Command | None = None
 
         match request_type:
-            case "generate":
-                data = {
-                    "request_id": request_data.get("request_id"),
-                    "request_time": request_data.get("request_time"),
-                    "requestor": request_data.get("requestor"),
-                    "request_text": request_data.get("request_text"),
-                    "image_min_dimensions": request_data.get("image_min_dimensions"),
-                    "image_max_dimensions": request_data.get("image_max_dimensions"),
-                    "mime_type": request_data.get("mime_type"),
-                }
-
-                command = GenerateMarketingImageCommand(
-                    data=GenerateMarketingImageData(**data),
+            case "change_attributes":
+                command = ChangeMarketingImageMetadataCommand(
+                    data=request_data,
                     source=self.source,
                     command_prefix=self.command_prefix,
                 )
-            
             case _:
                 raise ValueError(f"Invalid request type: {request_type}")
 

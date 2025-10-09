@@ -21,7 +21,7 @@ The agent's capabilities are exposed via an A2A (Agent-to-Agent Protocol) compli
 
 ## Features
 
-  - **Image Generation and Business Lifecyle Management**: The agent has a capability to generate marketing images from text descriptions - e.g. "A shopping cart full of fresh vegetables".  The agent also has skills related to approvals (i.e. for use by the business), lifecycle management (e.g. remove),and metadata management (e.g. update an images description).
+  - **Image Generation and Business Lifecyle Management**: The agent has a capability to generate marketing images from text descriptions - e.g. "A shopping cart full of fresh vegetables".  The agent also has skills related to approvals (i.e. for use by the business), lifecycle management (e.g. remove),and metadata management (e.g. change an image's description).
   - **A2A Compliant**: Implements the A2A (Agent-to-Agent) protocol for standardised agent communication.
   - **Tool-Using Agent**: Utilises the Google ADK to create an agent that uses a custom tools for image generation, approval marking, and lifecycle management.
   - **Cloud Integrated**: Stores generated images in a Google Cloud Storage bucket.
@@ -140,7 +140,7 @@ sequenceDiagram
         InMemoryCommandDispatcher-->>marketing_image_agent: result
         marketing_image_agent-->>Runner: status
     else change_image_metadata_tool
-        marketing_image_agent->>InMemoryCommandDispatcher: dispatch(UpdateMarketingImageMetadataCommand)
+        marketing_image_agent->>InMemoryCommandDispatcher: dispatch(ChangeMarketingImageMetadataCommand)
         InMemoryCommandDispatcher-->>marketing_image_agent: result
         marketing_image_agent-->>Runner: status
     end

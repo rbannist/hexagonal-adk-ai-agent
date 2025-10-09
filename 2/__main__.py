@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from dotenv import load_dotenv
 
 import uvicorn
 
@@ -20,6 +21,9 @@ from agent_executor import ADKAgentExecutor
 from marketing_image_agent.agent import create_agent
 
 logging.basicConfig(level=logging.INFO)
+
+load_dotenv()
+
 logger = logging.getLogger(__name__)
 
 container = Container()
@@ -35,9 +39,9 @@ artifact_storage_type = container.config.genai.adk.agent_1.artifact_storage_type
 if artifact_storage_type == "gcs":
     if container.config.genai.adk.agent_1.artifact_storage_gcs_bucket_name() is not None:
        gcs_artifact_storage_bucket = container.config.genai.adk.agent_1.artifact_storage_gcs_bucket_name()
-       print(f"Initialising ADK Agent with with {artifact_storage_type} Artifact Storage and Bucket: {gcs_artifact_storage_bucket}")
+       print(f"Initialising ADK Agent with {artifact_storage_type} artifact storage and bucket: {gcs_artifact_storage_bucket}")
 elif artifact_storage_type == "in_memory":
-    print(f"Initialising ADK Agent with {artifact_storage_type} Artifact Storage")
+    print(f"Initialising ADK Agent with {artifact_storage_type} artifact storage")
 else:
     raise ValueError
 
@@ -98,8 +102,8 @@ async def main():
             AgentSkill(
                 id="change_marketing_image_metadata",
                 name="Change Marketing Image Metadata",
-                description="Changes the description and keywords for a marketing image, using its ID.",
-                tags=["image", "edit", "metadata", "marketing"],
+                description="Changes the description, keywords, dimensions, url, and/or size of a marketing image, using its ID.",
+                tags=["image", "edit", "change", "metadata", "marketing"],
                 examples=[
                     "Update image 123e4567-e89b-12d3-a456-426614174000 with description 'A better description' and keywords 'new, keywords'",
                     "Update the record of image 123e4567-e89b-12d3-a456-426614174000 to have its actual dimensions of 512*512'",

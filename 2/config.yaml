@@ -40,12 +40,14 @@ genai:
   adk:
     model_1:
       name: "gemini-2.5-flash"
+    model_2:
+      name: "gemini-2.5-pro"
     agent_1:
       artifact_storage_type: "gcs" # in_memory, gcs
       artifact_storage_gcs_bucket_name: "rbal-assisted-csew4adkassb1"
       name: "marketing_image_generating_agent"
       description: "Agent to generate images for the marketing department within a supermarket retailer"
-      instruction: "Create a prompt based on what the user asks for and then pass the prompt to the generate_image tool.  Pass the response from the tool back to the user to conclude each interaction."
+      instruction: "Firstly, determine whether the user wishes to generate, set the approval status of, remove, or change the attributes of an image.  In the absence of a clear intention, assume the user wants to generate an image - i.e. unless they request to set the approval status (approve or reject), remove, or change attributes, assume they want to generate an image.  The user will signal a desire to change image attributes by asking to change attributes / metadata or specific attribute / metadata keys.  The attribute / metadata keys they are able to change are description, dimensions, url, size, and keywords.  keywords should be captured as a comma-separated list.  If the user wants to generate an image, create a prompt based on what the user asks for as verbatim as possible and then pass the prompt to the generate_image tool.  After the tool responds, pass the response back to the user to conclude the interaction.  You should always include the image_storage_url value in the response.  If the user specifically asks to set approval status, approve, reject, remove, or change the attributes or metadata of an image, use the appropriate tool to complete that request.  Pass back the tool's response to the user once it responds."
   vertex_ai:
     image:
       project_id: "rbal-assisted-prj1"

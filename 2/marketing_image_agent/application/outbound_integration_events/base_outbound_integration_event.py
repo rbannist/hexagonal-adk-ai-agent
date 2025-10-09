@@ -68,6 +68,7 @@ class IntegrationEvent(ABC):
             "data": _to_dict_recursive(self.data),
             "source": self.source,
             "version": self.version,
+            "specversion": self.specversion,
             "occurred_at": self.occurred_at.isoformat() + "Z",
             "metadata": self.metadata,
         }

@@ -5,11 +5,36 @@ from marketing_image_agent.application.services.generate_marketing_image_driving
 from marketing_image_agent.application.services.generate_marketing_image_core_service import GenerateMarketingImageCoreService
 from marketing_image_agent.application.services.generate_marketing_image_driven_service import GenerateMarketingImageDrivenService
 
+from marketing_image_agent.application.services.change_marketing_image_approval_status_driving_service import ChangeMarketingImageApprovalStatusDrivingService
+
+from marketing_image_agent.application.services.approve_marketing_image_core_service import ApproveMarketingImageCoreService
+from marketing_image_agent.application.services.approve_marketing_image_driven_service import ApproveMarketingImageDrivenService
+
+from marketing_image_agent.application.services.reject_marketing_image_core_service import RejectMarketingImageCoreService
+from marketing_image_agent.application.services.reject_marketing_image_driven_service import RejectMarketingImageDrivenService
+
+from marketing_image_agent.application.services.remove_marketing_image_driving_service import RemoveMarketingImageDrivingService
+from marketing_image_agent.application.services.remove_marketing_image_core_service import RemoveMarketingImageCoreService
+from marketing_image_agent.application.services.remove_marketing_image_driven_service import RemoveMarketingImageDrivenService
+
+from marketing_image_agent.application.services.change_marketing_image_metadata_driving_service import ChangeMarketingImageMetadataDrivingService
+from marketing_image_agent.application.services.change_marketing_image_metadata_core_service import ChangeMarketingImageMetadataCoreService
+from marketing_image_agent.application.services.change_marketing_image_metadata_driven_service import ChangeMarketingImageMetadataDrivenService
+
+
 # Command Handlers (Application)
 from marketing_image_agent.application.command_handlers.generate_marketing_image_command_handler import GenerateMarketingImageCommandHandler
- 
+from marketing_image_agent.application.command_handlers.approve_marketing_image_command_handler import ApproveMarketingImageCommandHandler
+from marketing_image_agent.application.command_handlers.reject_marketing_image_command_handler import RejectMarketingImageCommandHandler
+from marketing_image_agent.application.command_handlers.remove_marketing_image_command_handler import RemoveMarketingImageCommandHandler
+from marketing_image_agent.application.command_handlers.change_marketing_image_metadata_command_handler import ChangeMarketingImageMetadataCommandHandler
+
 # Domain Event Handlers (Application)
 from marketing_image_agent.application.domain_event_handlers.marketing_image_generated_domain_event_handler import MarketingImageGeneratedDomainEventHandler
+from marketing_image_agent.application.domain_event_handlers.marketing_image_approved_domain_event_handler import MarketingImageApprovedDomainEventHandler
+from marketing_image_agent.application.domain_event_handlers.marketing_image_rejected_domain_event_handler import MarketingImageRejectedDomainEventHandler
+from marketing_image_agent.application.domain_event_handlers.marketing_image_removed_domain_event_handler import MarketingImageRemovedDomainEventHandler
+from marketing_image_agent.application.domain_event_handlers.marketing_image_metadata_changed_domain_event_handler import MarketingImageMetadataChangedDomainEventHandler
 
 # Adapters inc. Dispatchers (Infrastructure)
 from marketing_image_agent.infrastructure.adapters.dispatching.in_memory_command_dispatcher import InMemoryCommandDispatcher
@@ -59,6 +84,7 @@ class Container(containers.DeclarativeContainer):
     config.object_storage.gcs.bucket.from_env("GOOGLE_CLOUD_STORAGE_MARKETING_IMAGE_ADAPTER_BUCKET")
 
     config.genai.adk.model_1.name.from_env("ADK_MODEL_1_NAME")
+    config.genai.adk.model_2.name.from_env("ADK_MODEL_2_NAME")
     config.genai.adk.agent_1.artifact_storage_type.from_env("ADK_AGENT_1_ARTIFACT_STORAGE_TYPE")
     config.genai.adk.agent_1.artifact_storage_gcs_bucket_name.from_env("ADK_AGENT_1_ARTIFACT_GCS_STORAGE_BUCKET")
     config.genai.adk.agent_1.example_store_type.from_env("ADK_AGENT_1_EXAMPLE_STORE_TYPE")
@@ -79,7 +105,7 @@ class Container(containers.DeclarativeContainer):
     config.genai.vertex_ai.image.imagen_model_name.from_env("GOOGLE_CLOUD_GENAI_IMAGEN_IMAGE_ADAPTER_MODEL_NAME")
     config.genai.vertex_ai.image.gemini_model_location.from_env("GOOGLE_CLOUD_GENAI_GEMINI_IMAGE_ADAPTER_MODEL_LOCATION")
     config.genai.vertex_ai.image.gemini_model_name.from_env("GOOGLE_CLOUD_GENAI_GEMINI_IMAGE_ADAPTER_MODEL_NAME")
-    config.genai.vertex_ai.multimodal.project_id.from_env("GOOGLE_CLOUD_GENAI_MULTIMODAL_ADAPTER_MODEL_PROJECT")
+    config.genai.vertex_ai.multimodal.project_id.from_env("GOOGLE_CLOUD_GENAI_MULTIMODAL_ADAPTER_PROJECT")
     config.genai.vertex_ai.multimodal.model_location.from_env("GOOGLE_CLOUD_GENAI_MULTIMODAL_ADAPTER_MODEL_LOCATION")
     config.genai.vertex_ai.multimodal.model_name.from_env("GOOGLE_CLOUD_GENAI_MULTIMODAL_ADAPTER_MODEL_NAME")
 
@@ -149,6 +175,22 @@ class Container(containers.DeclarativeContainer):
         command_dispatcher=command_dispatcher,
         command_prefix=config.dispatcher.command.prefix,
     )
+    change_marketing_image_approval_status_driving_service = providers.Factory(
+        ChangeMarketingImageApprovalStatusDrivingService,
+        command_dispatcher=command_dispatcher,
+        command_prefix=config.dispatcher.command.prefix,
+    )
+    remove_marketing_image_driving_service = providers.Factory(
+        RemoveMarketingImageDrivingService,
+        command_dispatcher=command_dispatcher,
+        command_prefix=config.dispatcher.command.prefix,
+    )
+    change_marketing_image_metadata_driving_service = providers.Factory(    
+        ChangeMarketingImageMetadataDrivingService,
+        command_dispatcher=command_dispatcher,
+        command_prefix=config.dispatcher.command.prefix,
+    )
+    
 
     # Core Services (Application)
     generate_marketing_image_core_service = providers.Factory(
@@ -159,10 +201,55 @@ class Container(containers.DeclarativeContainer):
         domain_event_prefix=config.dispatcher.domain_event.prefix,
         domain_event_dispatcher=domain_event_dispatcher,
     )
+    approve_marketing_image_core_service = providers.Factory(  
+        ApproveMarketingImageCoreService,
+        marketing_image_repository=marketing_image_repository,
+        domain_event_prefix=config.dispatcher.domain_event.prefix,
+        domain_event_dispatcher=domain_event_dispatcher,
+    )
+    reject_marketing_image_core_service = providers.Factory(   
+        RejectMarketingImageCoreService,
+        marketing_image_repository=marketing_image_repository,
+        domain_event_prefix=config.dispatcher.domain_event.prefix,
+        domain_event_dispatcher=domain_event_dispatcher,
+    )
+    remove_marketing_image_core_service = providers.Factory(   
+        RemoveMarketingImageCoreService,
+        marketing_image_repository=marketing_image_repository,
+        marketing_image_object_storage=marketing_image_object_storage,
+        domain_event_prefix=config.dispatcher.domain_event.prefix,
+        domain_event_dispatcher=domain_event_dispatcher,
+    )
+    change_marketing_image_metadata_core_service = providers.Factory(
+        ChangeMarketingImageMetadataCoreService,
+        marketing_image_repository=marketing_image_repository,
+        domain_event_prefix=config.dispatcher.domain_event.prefix,
+        domain_event_dispatcher=domain_event_dispatcher,
+    )
 
     # Driven Services (Application)
     generate_marketing_image_driven_service = providers.Factory(
         GenerateMarketingImageDrivenService,
+        integration_event_prefix=config.dispatcher.integration_event.prefix,
+        marketing_image_integration_event_messaging=marketing_image_integration_event_messaging,
+    )
+    approve_marketing_image_driven_service = providers.Factory(
+        ApproveMarketingImageDrivenService,
+        integration_event_prefix=config.dispatcher.integration_event.prefix,
+        marketing_image_integration_event_messaging=marketing_image_integration_event_messaging,
+    )
+    reject_marketing_image_driven_service = providers.Factory(
+        RejectMarketingImageDrivenService,
+        integration_event_prefix=config.dispatcher.integration_event.prefix,
+        marketing_image_integration_event_messaging=marketing_image_integration_event_messaging,
+    )
+    remove_marketing_image_driven_service = providers.Factory(
+        RemoveMarketingImageDrivenService,
+        integration_event_prefix=config.dispatcher.integration_event.prefix,
+        marketing_image_integration_event_messaging=marketing_image_integration_event_messaging,
+    )
+    change_marketing_image_metadata_driven_service = providers.Factory(
+        ChangeMarketingImageMetadataDrivenService,
         integration_event_prefix=config.dispatcher.integration_event.prefix,
         marketing_image_integration_event_messaging=marketing_image_integration_event_messaging,
     )
@@ -173,10 +260,50 @@ class Container(containers.DeclarativeContainer):
         core_service=generate_marketing_image_core_service,
         command_dispatcher=command_dispatcher,
     )
+    approve_marketing_image_command_handler = providers.Singleton(
+        ApproveMarketingImageCommandHandler,
+        core_service=approve_marketing_image_core_service,
+        command_dispatcher=command_dispatcher,
+    )
+    reject_marketing_image_command_handler = providers.Singleton(
+        RejectMarketingImageCommandHandler,
+        core_service=reject_marketing_image_core_service,
+        command_dispatcher=command_dispatcher,
+    )
+    remove_marketing_image_command_handler = providers.Singleton(
+        RemoveMarketingImageCommandHandler,
+        core_service=remove_marketing_image_core_service,
+        command_dispatcher=command_dispatcher,
+    )
+    change_marketing_image_metadata_command_handler = providers.Singleton(
+        ChangeMarketingImageMetadataCommandHandler,
+        core_service=change_marketing_image_metadata_core_service,
+        command_dispatcher=command_dispatcher,
+    )
 
     # Domain Event Handlers (Application) - Eagerly instantiated in main.py to register themselves
     marketing_image_generated_domain_event_handler = providers.Singleton(
         MarketingImageGeneratedDomainEventHandler,
         driven_service=generate_marketing_image_driven_service,
+        domain_event_dispatcher=domain_event_dispatcher,
+    )
+    marketing_image_approved_domain_event_handler = providers.Singleton(
+        MarketingImageApprovedDomainEventHandler,  
+        driven_service=approve_marketing_image_driven_service,
+        domain_event_dispatcher=domain_event_dispatcher,
+    )
+    marketing_image_rejected_domain_event_handler = providers.Singleton(
+        MarketingImageRejectedDomainEventHandler,
+        driven_service=reject_marketing_image_driven_service,
+        domain_event_dispatcher=domain_event_dispatcher,
+    )
+    marketing_image_removed_domain_event_handler = providers.Singleton(
+        MarketingImageRemovedDomainEventHandler,
+        driven_service=remove_marketing_image_driven_service,
+        domain_event_dispatcher=domain_event_dispatcher,
+    )
+    marketing_image_metadata_changed_domain_event_handler = providers.Singleton(
+        MarketingImageMetadataChangedDomainEventHandler,
+        driven_service=change_marketing_image_metadata_driven_service,
         domain_event_dispatcher=domain_event_dispatcher,
     )

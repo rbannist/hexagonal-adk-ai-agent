@@ -42,7 +42,6 @@ class GenerateMarketingImageCoreService:
 
         generated_marketing_image = self.genai_image_generator.generate_marketing_image(prompt=image_generation_prompt, min_dimensions=image_min_dimensions, max_dimensions=image_max_dimensions, mime_type=mime_type)
         
-        image_file_name = f"marketing-{request_id}.png"
         generated_image_bytes = generated_marketing_image["image_data"]
         generated_image_dimensions = generated_marketing_image["image_dimensions"]
         generated_image_mime_type = generated_marketing_image["mime_type"]
@@ -52,10 +51,18 @@ class GenerateMarketingImageCoreService:
         generated_image_generation_parameters = generated_marketing_image["generation_parameters"]
         generated_image_size = len(generated_image_bytes)
 
+        image_id = uuid.uuid4()
+        image_file_name = f"marketing-{image_id}.png"
+
         storage_saved_image_url, storage_saved_image_checksum = self.object_storage.save_marketing_image_object(image_data=generated_image_bytes, file_name=image_file_name, content_type=generated_image_mime_type, fixed_key_metadata={"content_type":generated_image_mime_type}, custom_metadata={"key1":"value1"})
 
+        created_by = str(uuid.uuid4()) # This needs implementing properly
+        created_at = str(datetime.now().isoformat())
+        last_modified_at = created_at
+        
         marketing_image_dict = self.aggregate_factory.generate(
             {
+                "id": str(image_id),
                 "url": storage_saved_image_url,
                 "description": image_generation_prompt,
                 "keywords": ["retail"],
@@ -66,9 +73,9 @@ class GenerateMarketingImageCoreService:
                 "size": generated_image_size,
                 "mime_type": generated_image_mime_type,
                 "checksum": storage_saved_image_checksum,
-                "created_by": str(uuid.uuid4()),
-                "created_at": str(datetime.now().isoformat()),
-                "last_modified_at": str(datetime.now().isoformat()),
+                "created_by": created_by,
+                "created_at": created_at,
+                "last_modified_at": last_modified_at,
             }
         )
 
@@ -84,8 +91,11 @@ class GenerateMarketingImageCoreService:
         self.domain_event_dispatcher.dispatch(domain_event=marketing_image_generated_most_recent_domain_event)
         
         response = {
-            "id": marketing_image_dict.get("id"),
+            "request_id": request_id,
+            "requestor": marketing_image_dict.get("created_by"),
+            "image_id": marketing_image_dict.get("id"),
             "url": marketing_image_dict.get("url"),
+            "status": marketing_image_dict.get("status"),
         }
         
         return response
