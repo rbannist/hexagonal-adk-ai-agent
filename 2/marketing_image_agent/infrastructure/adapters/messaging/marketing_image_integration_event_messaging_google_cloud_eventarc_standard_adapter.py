@@ -2,6 +2,7 @@ import os
 import json
 
 from google.cloud import pubsub_v1
+from ....shared.utils import DataManipulationUtils
 
 from ....application.ports.marketing_image_integration_event_messaging_output_port import MarketingImageIntegrationEventMessagingOutputPort
 from ....application.outbound_integration_events.base_outbound_integration_event import IntegrationEvent
@@ -31,6 +32,9 @@ class MarketingImageIntegrationEventMessagingGoogleCloudEventarcStandardAdapter(
 
         self.publisher = pubsub_v1.PublisherClient()
         self.topic_path = self.publisher.topic_path(self.google_cloud_project, self.topic_name)
+
+    def _convert_keys_snake_to_camel_case(self, data: dict) -> dict:
+        return DataManipulationUtils.convert_keys_snake_to_camel_case(data)
     
     def publish(self, integration_event: IntegrationEvent) -> dict:
         """
@@ -45,15 +49,18 @@ class MarketingImageIntegrationEventMessagingGoogleCloudEventarcStandardAdapter(
         try:
             # Convert the integration event to a dictionary
             integration_event_dict = MarketingImageIntegrationEventsFactory().to_dict(integration_event)
+            
+            # Convert all keys to camelCase for the published event
+            integration_event_camel_case_dict = self._convert_keys_snake_to_camel_case(integration_event_dict)
 
             # The 'data' field of the event will be the message body
-            message_data_dict = integration_event_dict.pop("data", {})
+            message_data_dict = integration_event_camel_case_dict.pop("data", {})
             message_data = json.dumps(message_data_dict).encode("utf-8")
 
             # The other top-level fields will be message attributes.
             # Pub/Sub attributes must be strings.
             attributes = {}
-            for key, value in integration_event_dict.items():
+            for key, value in integration_event_camel_case_dict.items():
                 if isinstance(value, (dict, list)):
                     attributes[key] = json.dumps(value)
                 else:
