@@ -14,6 +14,7 @@ class MarketingImageMetadataChangedEvent(DomainEvent): # Primitives for decoupli
         keywords: Optional[List[str]] = None,
         dimensions: Optional[Dict[str, int]] = None,
         size: Optional[int] = None,
+        checksum: Optional[str] = None,
         event_id: str = None,
         event_type: str = None,
         event_source: str = None,
@@ -28,6 +29,7 @@ class MarketingImageMetadataChangedEvent(DomainEvent): # Primitives for decoupli
         # Only add optional fields to event_data if they are not None
         optional_fields = {
             "url": url,
+            "checksum": checksum,
             "description": description,
             "keywords": keywords,
             "dimensions": dimensions,
