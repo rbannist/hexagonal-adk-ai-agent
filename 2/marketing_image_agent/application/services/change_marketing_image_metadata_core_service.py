@@ -55,6 +55,6 @@ class ChangeMarketingImageMetadataCoreService:
             "request_id": request_id,
             "requestor": requestor,
             "image_id": str(updated_marketing_image.id),
-            "url": updated_marketing_image.url,
+            "url": str(updated_marketing_image.url) if updated_marketing_image.url else None,
             "changed_metadata": changed_metadata
         }

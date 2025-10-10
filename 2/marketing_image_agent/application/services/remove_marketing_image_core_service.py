@@ -53,7 +53,7 @@ class RemoveMarketingImageCoreService:
         response = {
             "request_id": request_id,
             "requestor": requestor,
-            "image_id": marketing_image.id.value,
+            "image_id": str(marketing_image.id),
             "url": marketing_image.url.url,
             "status": marketing_image.status.status.value,
         }
