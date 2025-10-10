@@ -125,6 +125,7 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
                 "id": event.data["id"],
                 "changed_by": event.data["changed_by"],
                 "changed_at": event.data["changed_at"],
+                "url": event.data.get("url"),
             },
             "source": event.source,
             "version": event.version,
@@ -260,7 +261,7 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
         return MarketingImageMetadataChangedEvent(
             event_id=event_id,
             id=data["id"],
-            url=data.get("url"),
+            url=data["url"],
             description=data.get("description"),
             keywords=data.get("keywords"),
             dimensions=data.get("dimensions"),

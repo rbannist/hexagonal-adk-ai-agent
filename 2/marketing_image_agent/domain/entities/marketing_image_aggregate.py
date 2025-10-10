@@ -209,6 +209,7 @@ class MarketingImage(AggregateRoot):
                 id=str(self.id),
                 changed_at=self.changed_at.to_string(),
                 changed_by=str(self.changed_by.user_id),
+                url=str(self.url) if self.url else None,
                 **changed_fields
             )
         )
