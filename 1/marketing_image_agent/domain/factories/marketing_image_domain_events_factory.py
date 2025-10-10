@@ -30,6 +30,10 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
                 "dimensions": event.data["dimensions"],
                 "size": event.data["size"],
                 "mime_type": event.data["mime_type"],
+                "checksum": event.data["checksum"],
+                "created_by": event.data["created_by"],
+                "created_at": event.data["created_at"],
+                "last_modified_at": event.data["last_modified_at"],
             },
             "source": event.source,
             "version": event.version,
@@ -51,6 +55,9 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
                 "dimensions": event.data["dimensions"],
                 "size": event.data["size"],
                 "mime_type": event.data["mime_type"],
+                "checksum": event.data["checksum"],
+                "modified_by": event.data["modified_by"],
+                "modified_at": event.data["modified_at"],
             },
             "source": event.source,
             "version": event.version,
@@ -65,8 +72,9 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
             "data": {
                 "id": event.data["id"],
                 "url": event.data["url"],
+                "approved_by": event.data["approved_by"],
+                "approved_at": event.data["approved_at"],
                 "checksum": event.data["checksum"],
-                "created_at": event.data["created_at"],
             },
             "source": event.source,
             "version": event.version,
@@ -81,8 +89,9 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
             "data": {
                 "id": event.data["id"],
                 "url": event.data["url"],
+                "rejected_by": event.data["rejected_by"],
+                "rejected_at": event.data["rejected_at"],
                 "checksum": event.data["checksum"],
-                "created_at": event.data["created_at"],
             },
             "source": event.source,
             "version": event.version,
@@ -97,6 +106,8 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
             "data": {
                 "id": event.data["id"],
                 "url": event.data["url"],
+                "removed_by": event.data["removed_by"],
+                "removed_at": event.data["removed_at"],
                 "size": event.data["size"],
                 "checksum": event.data["checksum"],
             },
@@ -107,20 +118,30 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
 
     def to_marketing_image_metadata_changed_event_dict(self, event: MarketingImageMetadataChangedEvent) -> Dict:
         """Serialises a MarketingImageMetadataChangedEvent object into a dictionary."""
-        return {
+        result = {
             "id": event.id,
             "type": event.type,
             "data": {
                 "id": event.data["id"],
-                "url": event.data["url"],
-                "description": event.data["description"],
-                "keywords": event.data["keywords"],
+                "changed_by": event.data["changed_by"],
+                "changed_at": event.data["changed_at"],
+                "url": event.data.get("url"),
             },
             "source": event.source,
             "version": event.version,
             "occurred_at": event.occurred_at.isoformat() + "Z",
         }
-
+        if event.data.get("url") is not None:
+            result["data"]["url"] = event.data["url"]
+        if event.data.get("description") is not None:
+            result["data"]["description"] = event.data["description"]
+        if event.data.get("dimensions") is not None:
+            result["data"]["dimensions"] = event.data["dimensions"]
+        if event.data.get("size") is not None:
+            result["data"]["size"] = event.data["size"]
+        if event.data.get("keywords") is not None:
+            result["data"]["keywords"] = event.data["keywords"]
+        return result
     def to_dict(self, event: DomainEvent) -> Dict:
         """
         Serialises a DomainEvent object into a dictionary.
@@ -183,62 +204,68 @@ class MarketingImageDomainEventsFactory(DomainEventFactory):
         print(f"Reconstituted MarketingImageGeneratedEvent with Event ID {marketing_image_generated_event.id} and Aggregate ID {marketing_image_generated_event.data["id"]}")
         return marketing_image_generated_event
 
-    def reconstitute_marketing_image_modified_event(self, data: Dict):
+    def reconstitute_marketing_image_modified_event(self, data: Dict, event_id: str = None):
         """Reconstitutes a MarketingImageModifiedEvent from a dictionary."""
         return MarketingImageModifiedEvent(
+            event_id=event_id,
             id=data["id"],
             url=data["url"],
             description=data["description"],
             keywords=data["keywords"],
             generation_model=data["generation_model"],
             generation_parameters=data["generation_parameters"],
-            dimensions=data["dimensions"],
-            size=data["size"],
-            mime_type=data["mime_type"],
+            dimensions=data.get("dimensions"),
+            size=data.get("size"),
+            mime_type=data.get("mime_type"),
             checksum=data["checksum"],
-            created_by=data["created_by"],
-            created_at=data["created_at"],
-            last_modified_at=data["last_modified_at"],
+            modified_by=data["modified_by"],
+            modified_at=data["modified_at"],
         )
 
-    def reconstitute_marketing_image_approved_event(self, data: Dict):
+    def reconstitute_marketing_image_approved_event(self, data: Dict, event_id: str = None):
         """Reconstitutes a MarketingImageApprovedEvent from a dictionary."""
         return MarketingImageApprovedEvent(
+            event_id=event_id,
             id=data["id"],
             url=data["url"],
             checksum=data["checksum"],
-            created_at=data["created_at"],
-            last_modified_at=data["last_modified_at"],
+            approved_by=data["approved_by"],
+            approved_at=data["approved_at"],
         )
 
-    def reconstitute_marketing_image_rejected_event(self, data: Dict):
+    def reconstitute_marketing_image_rejected_event(self, data: Dict, event_id: str = None):
         """Reconstitutes a MarketingImageRejectedEvent from a dictionary."""
         return MarketingImageRejectedEvent(
+            event_id=event_id,
             id=data["id"],
             url=data["url"],
             checksum=data["checksum"],
-            created_at=data["created_at"],
-            last_modified_at=data["last_modified_at"],
+            rejected_by=data["rejected_by"],
+            rejected_at=data["rejected_at"],
         )
 
-    def reconstitute_marketing_image_removed_event(self, data: Dict):
+    def reconstitute_marketing_image_removed_event(self, data: Dict, event_id: str = None):
         """Reconstitutes a MarketingImageRemovedEvent from a dictionary."""
         return MarketingImageRemovedEvent(
+            event_id=event_id,
             id=data["id"],
             url=data["url"],
+            removed_by=data["removed_by"],
+            removed_at=data["removed_at"],
             size=data["size"],
             checksum=data["checksum"],
-            created_at=data["created_at"],
-            last_modified_at=data["last_modified_at"],
         )
 
-    def reconstitute_marketing_image_metadata_changed_event(self, data: Dict):
+    def reconstitute_marketing_image_metadata_changed_event(self, data: Dict, event_id: str = None):
         """Reconstitutes a MarketingImageMetadataChangedEvent from a dictionary."""
         return MarketingImageMetadataChangedEvent(
+            event_id=event_id,
             id=data["id"],
             url=data["url"],
-            description=data["description"],
-            keywords=data["keywords"],
-            created_at=data["created_at"],
-            last_modified_at=data["last_modified_at"],
+            description=data.get("description"),
+            keywords=data.get("keywords"),
+            dimensions=data.get("dimensions"),
+            size=data.get("size"),
+            changed_by=data["changed_by"],
+            changed_at=data["changed_at"],
         )

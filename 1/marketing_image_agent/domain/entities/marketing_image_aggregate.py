@@ -102,14 +102,15 @@ class MarketingImage(AggregateRoot):
         Marks the marketing image as approved.
         """
         self.status = Status.from_string("APPROVED")
-        self.last_modified_at = LastModifiedAt.now()
+        self.approved_at = LastModifiedAt.now()
+        self.approved_by = self.created_by # This needs implementing properly
         self.add_domain_event(
             MarketingImageApprovedEvent(
                 id=str(self.id),
+                approved_at=self.approved_at.to_string(),
+                approved_by=str(self.approved_by.user_id),
                 url=self.url.url,
                 checksum=self.checksum.checksum,
-                created_at=self.created_at.to_string() if self.created_at else None,
-                last_modified_at=self.last_modified_at.to_string(),
             )
         )
 
@@ -118,14 +119,15 @@ class MarketingImage(AggregateRoot):
         Marks the marketing image as rejected.
         """
         self.status = Status.from_string("REJECTED")
-        self.last_modified_at = LastModifiedAt.now()
+        self.rejected_at = LastModifiedAt.now()
+        self.rejected_by = self.created_by # This needs implementing properly
         self.add_domain_event(
             MarketingImageRejectedEvent(
                 id=str(self.id),
+                rejected_at=self.rejected_at.to_string(),
+                rejected_by=str(self.rejected_by.user_id),
                 url=self.url.url,
                 checksum=self.checksum.checksum,
-                created_at=self.created_at.to_string() if self.created_at else None,
-                last_modified_at=self.last_modified_at.to_string(),
             )
         )
 
@@ -134,10 +136,13 @@ class MarketingImage(AggregateRoot):
         Updates the marketing image details.
         """
         self.status = Status.from_string("REVIEWING")
-        self.last_modified_at = LastModifiedAt.now()
+        self.modified_by = self.created_by # This needs implementing properly
+        self.modified_at = LastModifiedAt.now()
         self.add_domain_event(
             MarketingImageModifiedEvent(
                 id=str(self.id),
+                modified_at=self.modified_at.to_string(),
+                modified_by=str(self.modified_by.user_id),
                 url=self.url.url,
                 description=self.description.description,
                 keywords=self.keywords.keywords,
@@ -147,8 +152,6 @@ class MarketingImage(AggregateRoot):
                 size=self.size.size,
                 mime_type=self.mime_type.mime_type,
                 checksum=self.checksum.checksum,
-                created_at=self.created_at.to_string() if self.created_at else None,
-                last_modified_at=self.last_modified_at.to_string(),
             )
         )
 
@@ -157,15 +160,16 @@ class MarketingImage(AggregateRoot):
         Removes the marketing image.
         """
         self.status = Status.from_string("REMOVED")
-        self.last_modified_at = LastModifiedAt.now()
+        self.removed_by = self.created_by # This needs implementing properly
+        self.removed_at = LastModifiedAt.now()
         self.add_domain_event(
             MarketingImageRemovedEvent(
                 id=str(self.id),
+                removed_by=str(self.removed_by.user_id),
+                removed_at=self.removed_at.to_string(),
                 url=self.url.url,
                 size=self.size.size,
                 checksum=self.checksum.checksum,
-                created_at=self.created_at.to_string() if self.created_at else None,
-                last_modified_at=self.last_modified_at.to_string(),
             )
         )
 
@@ -177,26 +181,36 @@ class MarketingImage(AggregateRoot):
         size: Optional[ImageSize] = None,
         url: Optional[ImageUrl] = None,
     ):
+        changed_fields = {}
         if description is not None:
             self.description = description
+            changed_fields["description"] = description.description
         if keywords is not None:
             self.keywords = keywords
+            changed_fields["keywords"] = keywords.keywords
         if dimensions is not None:
             self.dimensions = dimensions
+            changed_fields["dimensions"] = dimensions.to_dict()
         if size is not None:
             self.size = size
+            changed_fields["size"] = size.size
         if url is not None:
             self.url = url
-        self.last_modified_at = LastModifiedAt.now()
+            changed_fields["url"] = url.url
+
+        if not changed_fields:
+            return # No changes, no event
+
+        self.changed_at = LastModifiedAt.now()
+        self.changed_by = self.created_by # This needs implementing properly
+
         self.add_domain_event(
             MarketingImageMetadataChangedEvent(
                 id=str(self.id),
-                url=self.url.url,
-                description=self.description.description,
-                keywords=self.keywords.keywords,
-                dimensions=self.dimensions.to_dict(),
-                size=self.size.size,
-                created_at=self.created_at.to_string() if self.created_at else None,
-                last_modified_at=self.last_modified_at.to_string(),
+                changed_at=self.changed_at.to_string(),
+                changed_by=str(self.changed_by.user_id),
+                url=str(self.url) if self.url else None,
+                checksum=str(self.checksum) if self.checksum else None,
+                **changed_fields
             )
         )

@@ -7,6 +7,8 @@ class MarketingImageModifiedEvent(DomainEvent): # Primitives for decoupling, ser
     def __init__(
         self,
         id: str,
+        modified_at: str,
+        modified_by: str,
         url: str,
         description: str,
         keywords: dict,
@@ -16,8 +18,6 @@ class MarketingImageModifiedEvent(DomainEvent): # Primitives for decoupling, ser
         size: str,
         mime_type: str,
         checksum: str,
-        created_at: str,
-        last_modified_at: str,
         event_id: str = None,
         event_type: str = None,
         event_source: str = None,
@@ -26,6 +26,8 @@ class MarketingImageModifiedEvent(DomainEvent): # Primitives for decoupling, ser
         event_type = DomainEvent.get_event_type("modified") if event_type is None else event_type
         event_data = {
             "id": id,
+            "modified_at": modified_at,
+            "modified_by": modified_by,
             "url": url,
             "description": description,
             "keywords": keywords,
@@ -35,8 +37,6 @@ class MarketingImageModifiedEvent(DomainEvent): # Primitives for decoupling, ser
             "size": size,
             "mime_type": mime_type,
             "checksum": checksum,
-            "created_at": created_at,
-            "last_modified_at": last_modified_at,
         }
         super().__init__(
             id=str(uuid.uuid4()) if not event_id else event_id,
