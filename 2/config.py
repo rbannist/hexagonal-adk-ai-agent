@@ -49,6 +49,7 @@ from marketing_image_agent.infrastructure.adapters.messaging.marketing_image_int
 
 # Factories (Domain)
 from marketing_image_agent.domain.factories.marketing_image_aggregate_factory import MarketingImageAggregateFactory
+from marketing_image_agent.application.factories.marketing_image_thin_integration_event_factory import MarketingImageIntegrationEventsFactory
 
 
 ## Wire everything up
@@ -79,6 +80,7 @@ class Container(containers.DeclarativeContainer):
     config.repository.firestore.marketing_images_collection.from_env("GOOGLE_CLOUD_FIRESTORE_REPOSITORY_ADAPTER_COLLECTION_MARKETING_IMAGES")
     config.repository.firestore.domain_events_collection.from_env("GOOGLE_CLOUD_FIRESTORE_REPOSITORY_ADAPTER_COLLECTION_MARKETING_IMAGE_EVENTS")
 
+    config.object_storage.storage_type.from_env("MARKETING_IMAGE_ADAPTER_STORAGE_TYPE")
     config.object_storage.gcs.project_id.from_env("GOOGLE_CLOUD_MARKETING_IMAGE_OBJECT_STORAGE_ADAPTER_PROJECT")
     config.object_storage.gcs.location.from_env("GOOGLE_CLOUD_STORAGE_MARKETING_IMAGE_ADAPTER_LOCATION")
     config.object_storage.gcs.bucket.from_env("GOOGLE_CLOUD_STORAGE_MARKETING_IMAGE_ADAPTER_BUCKET")
@@ -115,6 +117,15 @@ class Container(containers.DeclarativeContainer):
 
     # Factories (Domain)
     marketing_image_aggregate_factory = providers.Singleton(MarketingImageAggregateFactory)
+
+    # Factories (Application)
+    marketing_image_integration_events_factory = providers.Factory(
+        MarketingImageIntegrationEventsFactory,
+        storage_provider=config.object_storage.storage_type,
+        gcs_project_id=config.object_storage.gcs.project_id,
+        gcs_bucket_location=config.object_storage.gcs.location,
+        gcs_bucket_name=config.object_storage.gcs.bucket,
+    )
 
     # Adapters (Infrastructure)
     command_dispatcher = providers.Selector(
@@ -167,6 +178,7 @@ class Container(containers.DeclarativeContainer):
         google_cloud_project=config.messaging.eventarc_standard.project_id,
         topic_location=config.messaging.eventarc_standard.location,
         topic_name=config.messaging.eventarc_standard.topic,
+        marketing_image_integration_events_factory=marketing_image_integration_events_factory,
     )
 
     # Driving Services (Application)
@@ -231,26 +243,31 @@ class Container(containers.DeclarativeContainer):
     generate_marketing_image_driven_service = providers.Factory(
         GenerateMarketingImageDrivenService,
         integration_event_prefix=config.dispatcher.integration_event.prefix,
+        marketing_image_integration_events_factory=marketing_image_integration_events_factory,
         marketing_image_integration_event_messaging=marketing_image_integration_event_messaging,
     )
     approve_marketing_image_driven_service = providers.Factory(
         ApproveMarketingImageDrivenService,
         integration_event_prefix=config.dispatcher.integration_event.prefix,
+        marketing_image_integration_events_factory=marketing_image_integration_events_factory,
         marketing_image_integration_event_messaging=marketing_image_integration_event_messaging,
     )
     reject_marketing_image_driven_service = providers.Factory(
         RejectMarketingImageDrivenService,
         integration_event_prefix=config.dispatcher.integration_event.prefix,
+        marketing_image_integration_events_factory=marketing_image_integration_events_factory,
         marketing_image_integration_event_messaging=marketing_image_integration_event_messaging,
     )
     remove_marketing_image_driven_service = providers.Factory(
         RemoveMarketingImageDrivenService,
         integration_event_prefix=config.dispatcher.integration_event.prefix,
+        marketing_image_integration_events_factory=marketing_image_integration_events_factory,
         marketing_image_integration_event_messaging=marketing_image_integration_event_messaging,
     )
     change_marketing_image_metadata_driven_service = providers.Factory(
         ChangeMarketingImageMetadataDrivenService,
         integration_event_prefix=config.dispatcher.integration_event.prefix,
+        marketing_image_integration_events_factory=marketing_image_integration_events_factory,
         marketing_image_integration_event_messaging=marketing_image_integration_event_messaging,
     )
 

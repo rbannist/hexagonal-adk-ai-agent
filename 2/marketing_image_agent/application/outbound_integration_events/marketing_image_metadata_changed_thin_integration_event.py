@@ -13,6 +13,7 @@ class MarketingImageMetadataChangedThinIntegrationEvent(IntegrationEvent):
         id: str,
         changed_by: str,
         changed_at: str,
+        claim_check_token: str,
         event_id: str = None,
         event_type: str = None,
         **kwargs,
@@ -22,6 +23,7 @@ class MarketingImageMetadataChangedThinIntegrationEvent(IntegrationEvent):
             "id": id,
             "changed_by": changed_by,
             "changed_at": changed_at,
+            "claim_check_token": claim_check_token,
         }
 
         changed_metadata = {k: v for k, v in kwargs.items() if v is not None}

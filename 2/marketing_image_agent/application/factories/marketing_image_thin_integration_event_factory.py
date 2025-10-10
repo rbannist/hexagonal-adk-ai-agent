@@ -1,5 +1,6 @@
 from typing import Dict, Any
 from datetime import datetime
+from urllib.parse import urlparse
 
 from .base_integration_event_factory import IntegrationEventFactory
 from ..outbound_integration_events.base_outbound_integration_event import IntegrationEvent
@@ -23,6 +24,20 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
     Factory for creating and/or reconstituting Integration Events.
     """
 
+    def __init__(self, storage_provider: str, gcs_project_id: str, gcs_bucket_location: str, gcs_bucket_name: str):
+        self.storage_provider = storage_provider
+        self.gcs_project_id = gcs_project_id
+        self.gcs_bucket_location = gcs_bucket_location
+        self.gcs_bucket_name = gcs_bucket_name
+
+    def _create_claim_check_token(self, url: str, checksum: str) -> str:
+        """Creates a claim check token from the image URL and checksum."""
+        parsed_url = urlparse(url)
+        # Assumes path is /<bucket>/<filename>
+        filename = parsed_url.path.split('/', 2)[-1]
+        return f"{self.storage_provider}:{self.gcs_project_id}:{self.gcs_bucket_location}:{self.gcs_bucket_name}:{filename}:{checksum}"
+
+
     def _to_dict_recursive(self, data: Any) -> Any:
         """
         Recursively converts objects to dictionaries if they have a `to_dict` method.
@@ -41,6 +56,7 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
     def create_marketing_image_generated_thin_integration_event(self, marketing_image_generated_domain_event: MarketingImageGeneratedEvent) -> MarketingImageGeneratedThinIntegrationEvent:
         event_data = marketing_image_generated_domain_event.data
 
+        claim_check_token = self._create_claim_check_token(event_data["url"], event_data["checksum"])
         marketing_image_generated_thin_integration_event = MarketingImageGeneratedThinIntegrationEvent(
             id=event_data["id"],
             url=event_data["url"],
@@ -51,6 +67,7 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
             checksum=event_data["checksum"],
             created_by=event_data["created_by"],
             created_at=event_data["created_at"],
+            claim_check_token=claim_check_token,
         )
 
         return marketing_image_generated_thin_integration_event
@@ -58,6 +75,7 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
     def create_marketing_image_modified_thin_integration_event(self, marketing_image_modified_domain_event: MarketingImageModifiedEvent) -> MarketingImageModifiedThinIntegrationEvent:
         event_data = marketing_image_modified_domain_event.data
 
+        claim_check_token = self._create_claim_check_token(event_data["url"], event_data["checksum"])
         marketing_image_modified_thin_integration_event = MarketingImageModifiedThinIntegrationEvent(
             id=event_data["id"],
             modified_at=event_data["modified_at"],
@@ -68,6 +86,7 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
             size=event_data["size"],
             mime_type=event_data["mime_type"],
             checksum=event_data["checksum"],
+            claim_check_token=claim_check_token,
         )
 
         return marketing_image_modified_thin_integration_event
@@ -75,10 +94,12 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
     def create_marketing_image_approved_thin_integration_event(self, marketing_image_approved_domain_event: MarketingImageApprovedEvent) -> MarketingImageApprovedThinIntegrationEvent:
         event_data = marketing_image_approved_domain_event.data
 
+        claim_check_token = self._create_claim_check_token(event_data["url"], event_data["checksum"])
         marketing_image_approved_thin_integration_event = MarketingImageApprovedThinIntegrationEvent(
             id=event_data["id"],
             approved_by=event_data["approved_by"],
             approved_at=event_data["approved_at"],
+            claim_check_token=claim_check_token,
         )
 
         return marketing_image_approved_thin_integration_event
@@ -86,27 +107,32 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
     def create_marketing_image_rejected_thin_integration_event(self, marketing_image_rejected_domain_event: MarketingImageRejectedEvent) -> MarketingImageRejectedThinIntegrationEvent:
         event_data = marketing_image_rejected_domain_event.data
 
+        claim_check_token = self._create_claim_check_token(event_data["url"], event_data["checksum"])
         marketing_image_rejected_thin_integration_event = MarketingImageRejectedThinIntegrationEvent(
             id=event_data["id"],
             rejected_by=event_data["rejected_by"],
             rejected_at=event_data["rejected_at"],
+            claim_check_token=claim_check_token,
         )
 
         return marketing_image_rejected_thin_integration_event
     
     def create_marketing_image_removed_thin_integration_event(self, marketing_image_removed_domain_event: MarketingImageRemovedEvent) -> MarketingImageRemovedThinIntegrationEvent:
         event_data = marketing_image_removed_domain_event.data
-        
+
+        claim_check_token = self._create_claim_check_token(event_data["url"], event_data["checksum"])
         marketing_image_removed_thin_integration_event = MarketingImageRemovedThinIntegrationEvent(
             id=event_data["id"],
             removed_by=event_data["removed_by"],
             removed_at=event_data["removed_at"],
+            claim_check_token=claim_check_token,
         )
 
         return marketing_image_removed_thin_integration_event
 
     def create_marketing_image_metadata_changed_thin_integration_event(self, marketing_image_metadata_changed_domain_event: MarketingImageMetadataChangedEvent) -> MarketingImageMetadataChangedThinIntegrationEvent:
         event_data = marketing_image_metadata_changed_domain_event.data
+        claim_check_token = self._create_claim_check_token(event_data["url"], event_data["checksum"])
 
         changed_metadata = {
             "description": event_data.get("description"),
@@ -120,6 +146,7 @@ class MarketingImageIntegrationEventsFactory(IntegrationEventFactory):
             id=event_data["id"],
             changed_at=event_data["changed_at"],
             changed_by=event_data["changed_by"],
+            claim_check_token=claim_check_token,
             **changed_metadata,
         )
 

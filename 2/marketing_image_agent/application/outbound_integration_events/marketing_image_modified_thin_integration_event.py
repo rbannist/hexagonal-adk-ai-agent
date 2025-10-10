@@ -15,6 +15,7 @@ class MarketingImageModifiedThinIntegrationEvent(IntegrationEvent):
         size: str,
         mime_type: str,
         checksum: str,
+        claim_check_token: str,
         event_id: str = None,
         event_type: str = None,
         event_source: str = None,
@@ -31,6 +32,7 @@ class MarketingImageModifiedThinIntegrationEvent(IntegrationEvent):
             "size": size,
             "mime_type": mime_type,
             "checksum": checksum,
+            "claim_check_token": claim_check_token,
         }
 
         super().__init__(

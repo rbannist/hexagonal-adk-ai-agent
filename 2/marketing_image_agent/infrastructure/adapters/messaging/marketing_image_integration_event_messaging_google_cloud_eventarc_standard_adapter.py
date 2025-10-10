@@ -14,7 +14,13 @@ class MarketingImageIntegrationEventMessagingGoogleCloudEventarcStandardAdapter(
     Google Cloud Eventarc Standard (Pub/Sub) implementation of the MarketingImageIntegrationEventMessagingOutputPort.
     """
 
-    def __init__(self, google_cloud_project: str = None, topic_location: str = None, topic_name: str = None, ):
+    def __init__(
+        self,
+        google_cloud_project: str = None,
+        topic_location: str = None,
+        topic_name: str = None,
+        marketing_image_integration_events_factory: MarketingImageIntegrationEventsFactory = None,
+    ):
         if not google_cloud_project:
             self.google_cloud_project = os.getenv("GOOGLE_CLOUD_INTEGRATION_EVENT_MESSAGING_ADAPTER_PROJECT", "rbal-assisted-prj1")
         else:
@@ -29,6 +35,8 @@ class MarketingImageIntegrationEventMessagingGoogleCloudEventarcStandardAdapter(
             self.topic_name = os.getenv("GOOGLE_CLOUD_EVENTARC_STANDARD_INTEGRATION_EVENT_MESSAGING_ADAPTER_TOPIC", "rbal-assisted-psiemit1")
         else:
             self.topic_name = topic_name
+
+        self.marketing_image_integration_events_factory = marketing_image_integration_events_factory
 
         self.publisher = pubsub_v1.PublisherClient()
         self.topic_path = self.publisher.topic_path(self.google_cloud_project, self.topic_name)
@@ -48,7 +56,7 @@ class MarketingImageIntegrationEventMessagingGoogleCloudEventarcStandardAdapter(
         """
         try:
             # Convert the integration event to a dictionary
-            integration_event_dict = MarketingImageIntegrationEventsFactory().to_dict(integration_event)
+            integration_event_dict = self.marketing_image_integration_events_factory.to_dict(integration_event)
             
             # Convert all keys to camelCase for the published event
             integration_event_camel_case_dict = self._convert_keys_snake_to_camel_case(integration_event_dict)

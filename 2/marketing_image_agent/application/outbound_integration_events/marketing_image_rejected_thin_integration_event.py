@@ -15,6 +15,7 @@ class MarketingImageRejectedThinIntegrationEvent(IntegrationEvent):
         id: str,
         rejected_by: str,
         rejected_at: str,
+        claim_check_token: str,
         event_id: str = None,
         event_type: str = None,
     ):
@@ -23,6 +24,7 @@ class MarketingImageRejectedThinIntegrationEvent(IntegrationEvent):
             "id": id,
             "rejected_by": rejected_by,
             "rejected_at": rejected_at,
+            "claim_check_token": claim_check_token,
         }
 
         super().__init__(id=str(uuid.uuid4()) if not event_id else event_id, type=event_type, data=event_data, version="1.0")

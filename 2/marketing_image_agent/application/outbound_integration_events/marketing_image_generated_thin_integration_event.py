@@ -16,6 +16,7 @@ class MarketingImageGeneratedThinIntegrationEvent(IntegrationEvent):
         checksum: str,
         created_by: str,
         created_at: str,
+        claim_check_token: str,
         event_id: str = None,
         event_type: str = None,
         event_source: str = None,
@@ -32,6 +33,7 @@ class MarketingImageGeneratedThinIntegrationEvent(IntegrationEvent):
             "checksum": checksum,
             "created_by": created_by,
             "created_at": created_at,
+            "claim_check_token": claim_check_token,
         }
 
         super().__init__(

@@ -28,6 +28,7 @@ repository:
     domain_events_collection: "marketing-image-domain-events"
 
 object_storage:
+  storage_type: "gcs" # gcs
   gcs:
     project_id: "rbal-assisted-prj1"
     location: "europe-west4"

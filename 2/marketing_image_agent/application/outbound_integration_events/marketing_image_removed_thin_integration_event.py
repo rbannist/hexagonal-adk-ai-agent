@@ -15,6 +15,7 @@ class MarketingImageRemovedThinIntegrationEvent(IntegrationEvent):
         id: str,
         removed_by: str,
         removed_at: str,
+        claim_check_token: str,
         event_id: str = None,
         event_type: str = None,
     ):
@@ -23,6 +24,7 @@ class MarketingImageRemovedThinIntegrationEvent(IntegrationEvent):
             "id": id,
             "removed_by": removed_by,
             "removed_at": removed_at,
+            "claim_check_token": claim_check_token,
         }
 
         super().__init__(id=str(uuid.uuid4()) if not event_id else event_id, type=event_type, data=event_data, version="1.0")
