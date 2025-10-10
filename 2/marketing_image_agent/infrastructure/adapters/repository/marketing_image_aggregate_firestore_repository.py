@@ -81,55 +81,63 @@ class MarketingImageAggregateFirestoreRepository(MarketingImageRepositoryOutputP
         This method uses a batch write to ensure atomicity and handles both
         the creation of new aggregates and the update of existing ones.
         """
-        batch = self.db.batch()
-
         aggregate_doc_id = str(marketing_image.id)
         aggregate_type = marketing_image.__class__.__name__
-
-        print(f"Saving marketing image aggregate with ID {aggregate_doc_id}")
-
-        # 1. Save/Update the aggregate state
-        aggregate_ref = self.db.collection(self.aggregate_collection_name).document(aggregate_doc_id)
         aggregate_data = self.aggregate_factory.to_dict(marketing_image)
-
-        # The events are part of the aggregate's state but are stored in a separate
-        # collection, so we remove them from the main aggregate document data.
         domain_events = aggregate_data.pop("events_list", [])
 
-        # Remove events_list from aggregate_data, if present
-        if "events_list" in aggregate_data:
-            del aggregate_data["events_list"]
-
-        aggregate_data_camel_case = self._convert_keys_snake_to_camel_case(aggregate_data)
-
-        processed_aggregate_data = self._pre_persist_processing(aggregate_data_camel_case)
-        batch.set(aggregate_ref, processed_aggregate_data)
-
-        # 2. Save any new domain events to their own collection
-        event_id_list = []
+        # Check if a 'removed' event is present
+        removed_event = None
         for event in domain_events:
-            domain_event_type = event["type"]
-            event_doc_id = str(event["id"])
-            print(f"Saving {domain_event_type} event with ID {event_doc_id}")
-            event_id_list.append(event_doc_id)
+            if "removed" in event.get("type", "").lower():
+                removed_event = event
+                break
+
+        batch = self.db.batch()
+
+        if removed_event:
+            # If a 'removed' event exists, delete the aggregate and save only that event.
+            print(f"Processing removal for marketing image aggregate with ID {aggregate_doc_id}")
+            aggregate_ref = self.db.collection(self.aggregate_collection_name).document(aggregate_doc_id)
+            batch.delete(aggregate_ref)
+
+            event_doc_id = str(removed_event["id"])
+            print(f"Saving {removed_event['type']} event with ID {event_doc_id}")
             event_ref = self.db.collection(self.domain_event_collection_name).document(event_doc_id)
-
-            if isinstance(event, dict):
-                event_data = self._convert_keys_snake_to_camel_case(event)
-            else:
-                event_data = self._convert_keys_snake_to_camel_case(self.domain_events_factory.to_dict(event))
-
+            event_data = self._convert_keys_snake_to_camel_case(removed_event)
             processed_event_data = self._pre_persist_processing(event_data)
-
             batch.set(event_ref, processed_event_data)
+            
+            batch.commit()
+            marketing_image.clear_domain_events()
+            print(f"Removed {aggregate_type} {aggregate_doc_id} and saved its domain event (ID: {event_doc_id})")
 
-        # 3. Commit the transaction
-        batch.commit()
+        else:
+            # Save/Update the aggregate and its events
+            print(f"Saving marketing image aggregate with ID {aggregate_doc_id}")
+            aggregate_ref = self.db.collection(self.aggregate_collection_name).document(aggregate_doc_id)
+            
+            if "events_list" in aggregate_data:
+                del aggregate_data["events_list"]
+            
+            aggregate_data_camel_case = self._convert_keys_snake_to_camel_case(aggregate_data)
+            processed_aggregate_data = self._pre_persist_processing(aggregate_data_camel_case)
+            batch.set(aggregate_ref, processed_aggregate_data)
 
-        # 4. Clear events from the aggregate instance after they have been persisted
-        marketing_image.clear_domain_events()
+            event_id_list = []
+            for event in domain_events:
+                domain_event_type = event["type"]
+                event_doc_id = str(event["id"])
+                print(f"Saving {domain_event_type} event with ID {event_doc_id}")
+                event_id_list.append(event_doc_id)
+                event_ref = self.db.collection(self.domain_event_collection_name).document(event_doc_id)
+                event_data = self._convert_keys_snake_to_camel_case(event)
+                processed_event_data = self._pre_persist_processing(event_data)
+                batch.set(event_ref, processed_event_data)
 
-        print(f"Saved {aggregate_type} {aggregate_doc_id} and its {len(event_id_list)} domain events (IDs: {', '.join(event_id_list)})")
+            batch.commit()
+            marketing_image.clear_domain_events()
+            print(f"Saved {aggregate_type} {aggregate_doc_id} and its {len(event_id_list)} domain events (IDs: {', '.join(event_id_list)})")
 
         return marketing_image
 

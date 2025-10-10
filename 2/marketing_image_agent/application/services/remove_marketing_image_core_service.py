@@ -44,7 +44,7 @@ class RemoveMarketingImageCoreService:
         # Get the most recent domain event before it's cleared by the remove method.
         marketing_image_removed_most_recent_domain_event = marketing_image.events_list[-1]
 
-        self.aggregate_repository.remove(image_id)
+        self.aggregate_repository.save(marketing_image)
         print(f"Successfully removed marketing image with ID: {marketing_image.id}")
 
         # Dispatch the most recent domain event using the dispatcher
